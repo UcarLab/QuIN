@@ -1,0 +1,15 @@
+#centrality {
+	display: table;
+}
+
+#centralitypanels {
+	display: table-row;
+}
+
+#boxplotparams {
+	display: table-cell;
+}
+
+#boxplot {
+	display: table-cell;
+}

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>InteractionNetworkTool</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+    
+  <servlet>
+    <servlet-name>uploadchiapet</servlet-name>
+    <servlet-class>quin.web.servlets.UploadChIAPET</servlet-class>
+    <multipart-config>
+   	  <max-file-size>214748364</max-file-size>
+ 	</multipart-config>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>uploadregions</servlet-name>
+    <servlet-class>quin.web.servlets.UploadRegionList</servlet-class>
+    <multipart-config>
+   	  <max-file-size>214748364</max-file-size>
+ 	</multipart-config>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>uploadgenes</servlet-name>
+    <servlet-class>quin.web.servlets.UploadGeneList</servlet-class>
+    <multipart-config>
+   	  <max-file-size>214748364</max-file-size>
+ 	</multipart-config>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>uploaddiseases</servlet-name>
+    <servlet-class>quin.web.servlets.UploadDiseaseList</servlet-class>
+    <multipart-config>
+   	  <max-file-size>214748364</max-file-size>
+ 	</multipart-config>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>uploadsnps</servlet-name>
+    <servlet-class>quin.web.servlets.UploadSNPList</servlet-class>
+    <multipart-config>
+   	  <max-file-size>214748364</max-file-size>
+ 	</multipart-config>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>getuploadeddataids</servlet-name>
+    <servlet-class>quin.web.servlets.GetUploadedDataIds</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>buildnetwork</servlet-name>
+    <servlet-class>quin.web.servlets.BuildNetwork</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>mergenetworks</servlet-name>
+    <servlet-class>quin.web.servlets.MergeNetworks</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>getccids</servlet-name>
+    <servlet-class>quin.web.servlets.GetCCIdsServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>getcc</servlet-name>
+    <servlet-class>quin.web.servlets.GetCCServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>getnetworkinfo</servlet-name>
+    <servlet-class>quin.web.servlets.GetNetworkInfoServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>getsnps</servlet-name>
+    <servlet-class>quin.web.servlets.GetSNPTraitServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>search</servlet-name>
+    <servlet-class>quin.web.servlets.SearchServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>cboxplot</servlet-name>
+    <servlet-class>quin.web.servlets.CentralityBoxPlotServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>networkstatistics</servlet-name>
+    <servlet-class>quin.web.servlets.NetworkStatisticsServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>go</servlet-name>
+    <servlet-class>quin.web.servlets.GOServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>gene2go</servlet-name>
+    <servlet-class>quin.web.servlets.GetGene2Go</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>traitautocomplete</servlet-name>
+    <servlet-class>quin.web.servlets.GWASTraitAutoCompleteServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>exportnetwork</servlet-name>
+    <servlet-class>quin.web.servlets.ExportNetworkServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>exportminhop</servlet-name>
+    <servlet-class>quin.web.servlets.ExportMinHopServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>exportannotationcounts</servlet-name>
+    <servlet-class>quin.web.servlets.ExportComponentAnnotationCounts</servlet-class>
+  </servlet>
+  
+    <servlet>
+    <servlet-name>firstvisit</servlet-name>
+    <servlet-class>quin.web.servlets.FirstVisitServlet</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>uploadchiapet</servlet-name>
+    <url-pattern>/uploadchiapet</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>uploadregions</servlet-name>
+    <url-pattern>/uploadregions</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>uploadgenes</servlet-name>
+    <url-pattern>/uploadgenes</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>uploaddiseases</servlet-name>
+    <url-pattern>/uploaddiseases</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>uploadsnps</servlet-name>
+    <url-pattern>/uploadsnps</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>getuploadeddataids</servlet-name>
+    <url-pattern>/getuploadeddataids</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>mergenetworks</servlet-name>
+    <url-pattern>/mergenetworks</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>buildnetwork</servlet-name>
+    <url-pattern>/buildnetwork</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>getccids</servlet-name>
+    <url-pattern>/getccids</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>getcc</servlet-name>
+    <url-pattern>/getcc</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>getnetworkinfo</servlet-name>
+    <url-pattern>/getnetworkinfo</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>getsnps</servlet-name>
+    <url-pattern>/getsnps</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>search</servlet-name>
+    <url-pattern>/search</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>cboxplot</servlet-name>
+    <url-pattern>/cboxplot</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>networkstatistics</servlet-name>
+    <url-pattern>/networkstatistics</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>go</servlet-name>
+    <url-pattern>/go</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>gene2go</servlet-name>
+    <url-pattern>/gene2go</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>traitautocomplete</servlet-name>
+    <url-pattern>/traitautocomplete</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>exportnetwork</servlet-name>
+    <url-pattern>/exportnetwork</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>exportminhop</servlet-name>
+    <url-pattern>/exportminhop</url-pattern>
+  </servlet-mapping>
+  
+   <servlet-mapping>
+    <servlet-name>exportannotationcounts</servlet-name>
+    <url-pattern>/exportca</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>firstvisit</servlet-name>
+    <url-pattern>/firstvisit</url-pattern>
+  </servlet-mapping>
+  
+  <listener>
+    <listener-class>upkeep.DatabaseUpdaterExecutor</listener-class>
+  </listener>
+  
+  <listener>
+    <listener-class>upkeep.OldDataRemoverExecutor</listener-class>
+  </listener>
+  
+  <security-constraint>
+  	<web-resource-collection>
+  		<web-resource-name>HTTPS</web-resource-name>
+  		<url-pattern>/*</url-pattern>
+  	</web-resource-collection>
+  	<user-data-constraint>
+  		<transport-guarantee>CONFIDENTIAL</transport-guarantee>
+  	</user-data-constraint>
+  </security-constraint>
+  
+  <security-constraint>
+  	<web-resource-collection>
+  		<web-resource-name>HTTPSORHTTP</web-resource-name>
+  		<url-pattern>/css/*</url-pattern>
+  		<url-pattern>/images/*</url-pattern>
+  		<url-pattern>/videos/*</url-pattern>
+  	</web-resource-collection>
+  	<user-data-constraint>
+  		<transport-guarantee>NONE</transport-guarantee>
+  	</user-data-constraint>
+  </security-constraint>
+  
+  <session-config>
+    <cookie-config>
+        <http-only>true</http-only>
+        <secure>true</secure>
+    </cookie-config>
+  </session-config>
+ 
+  
+</web-app>

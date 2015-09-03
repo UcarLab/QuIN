@@ -1,0 +1,1 @@
+database	<your database example:jdbc:mysql://localhost/chiapet?>user	<user>password	<password>

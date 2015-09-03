@@ -1,0 +1,652 @@
+package quin.export;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import quin.network.Anchor;
+import quin.network.Edge;
+import quin.network.Interaction;
+import quin.network.Node;
+import nearestgene.NearestTSSUtil;
+import nearestgene.TSSGene;
+
+public class ExportMinHopFile {
+	
+	
+	public void createMinHopFile(Connection conn, long fid, Integer[] indices, Integer tindex, String f1, String f2, String zf, int min, int max) throws SQLException{
+		TreeMap<Integer, Node> nodes = setNetwork(conn, fid);
+		NARegion[][] nids = getNodeIds(conn, fid, indices, min, max);
+		ARegion[][] ngm = null;
+		String targetlabel;
+		String targetchrlabel = "Target Chr";
+		String targetslabel = "Target Start";
+		String targetelabel = "Target End";
+		if(tindex == null){
+			ngm = getNodeGeneMapping(conn, fid, "hg19", 2000, 2000);
+			targetlabel = "Promoter";
+
+		}
+		else{
+			ngm = getNodeTargetMapping(conn, fid, tindex);
+			Util u = new Util();
+			targetlabel = u.getDataset(conn, fid, tindex)+" Term";
+		}
+		NodeToTarget[] data = doBFS(nodes, nids, ngm);
+
+		File f = new File(f1);
+		BufferedWriter bw;
+		NearestTSSUtil ntss = new NearestTSSUtil(conn, "ucsc.hg19", "geneName", "chrom", "txStart", "txEnd", "strand");
+		try {
+			bw = new BufferedWriter(new FileWriter(f));
+			bw.write("Dataset\tTerm\tTerm Chr\tTerm Start\tTerm End\tTerm Nearest TSS\tTerm Nearest TSS Distance\tTarget Node\tHop Count\tDistance\t"+targetlabel+"\t"+targetchrlabel+"\t"+targetslabel+"\t"+targetelabel+"\tTarget Nearest TSS\tTarget Nearest TSS Distance\tAVG PET\tMin PET\tMax PET\tAVG Interactions\tMin Interactions\tMax Interactions\tTotal Nodes In Component\tTotal Edges In Component\tPath\n");
+
+			for(int i = 0; i < data.length; i++){
+				NARegion ni = data[i].getNodeInfo();
+				ARegion gi = data[i].getGeneInfo();
+				String path = data[i].getPath();
+				int tnode = ni.getNID();
+				int hc = data[i].getHopCount();
+				double avgpet = data[i]._avgpet;
+				int minpet = data[i]._minpet;
+				int maxpet = data[i]._maxpet;
+				double avginter = data[i]._avginter;
+				int mininter = data[i]._mininter;
+				int maxinter = data[i]._maxinter;
+				int nc = ni.getNodeCount();
+				int ec = ni.getEdgeCount();
+				
+				String dataset = ni.getDataset();
+				String term = ni.getTerm();
+				String nchr = ni.getChr();
+				int ns = ni.getStart();
+				int ne = ni.getEnd();
+				
+				String gene = gi.getTerm();
+				String gchr = gi.getChr();
+				int gs = gi.getStart();
+				int ge = gi.getEnd();
+
+				int distance = -1;
+				if(nchr.equals(gchr)){
+					if(ns <= ge && gs <= ne){
+						distance = 0;
+					}
+					else{
+						distance = Math.max(gs-ne, ns-ge);
+					}
+				}
+				
+				//Get term nearest TSS
+				TSSGene[] termtssgenes = ntss.getNearestGene(nchr, ns, ne);
+				String termtss = termtssgenes[0].getGene();
+				for(int ii = 1; ii < termtssgenes.length; ii++){
+					termtss += ","+termtssgenes[ii].getGene();
+				}
+				int termtssd = termtssgenes[0].getDistance();
+				
+				//Get target nearest TSS
+				TSSGene[] targettssgenes = ntss.getNearestGene(gchr, gs, ge);
+				String targettss = targettssgenes[0].getGene();
+				for(int ii = 1; ii < targettssgenes.length; ii++){
+					targettss += ","+targettssgenes[ii].getGene();
+				}
+				int targettssd = targettssgenes[0].getDistance();
+				
+				bw.write(dataset+"\t"+term+"\t"+nchr+"\t"+ns+"\t"+ne+"\t"+termtss+"\t"+termtssd+"\t"+tnode+"\t"+hc+"\t"+distance+"\t"+gene+"\t"+gchr+"\t"+gs+"\t"+ge+"\t"+targettss+"\t"+targettssd+"\t"+avgpet+"\t"+minpet+"\t"+maxpet+"\t"+avginter+"\t"+mininter+"\t"+maxinter+"\t"+nc+"\t"+ec+"\t"+path+"\n");
+			}
+			
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		//Write the node file
+		File nf = new File(f2);
+		try {
+			bw = new BufferedWriter(new FileWriter(nf));
+			bw.write("Node Id\tChr\tStart\tEnd\n");
+
+			for(Iterator<Node> it = nodes.values().iterator(); it.hasNext();){
+				Node n = it.next();
+				int id = n.getId();
+				String chr = n.getChr();
+				int start = n.getStart();
+				int end = n.getEnd();
+				bw.write(id+"\t"+chr+"\t"+start+"\t"+end+"\n");
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zf));
+			zipFile(zos, f1, "minhops.txt");
+			zipFile(zos, f2, "nodeidmap.txt");
+			zos.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		f.delete();
+		nf.delete();
+	}
+	
+	private void zipFile(ZipOutputStream zos, String f, String name) throws IOException{
+		byte[] buf = new byte[1024];
+		ZipEntry ze = new ZipEntry(name);
+		zos.putNextEntry(ze);
+		FileInputStream fin = new FileInputStream(f);
+		int l;
+		while((l = fin.read(buf)) > 0){
+			zos.write(buf, 0, l);
+		}
+		fin.close();
+		zos.closeEntry();
+	}
+	
+
+	
+	private NodeToTarget[] doBFS(TreeMap<Integer,Node> nodes, NARegion[][] nids, ARegion[][] genes){
+		LinkedList<NodeToTarget> rv = new LinkedList<NodeToTarget>();
+		for(int i = 0; i < nids.length; i++){
+			for(int j = 0; j < nids[i].length; j++){
+				NodeToTarget[] results = doBFS(Integer.toString(i), nodes.get(nids[i][j].getNID()), nids[i][j], genes, nodes.lastKey());
+				for(int k = 0; k < results.length; k++){
+					rv.add(results[k]);
+				}
+			}
+		}
+		return rv.toArray(new NodeToTarget[0]);
+	}
+	
+	private NodeToTarget[] doBFS(String index, Node n, NARegion r, ARegion[][] gm, int maxid){
+		boolean[] visited = new boolean[maxid+1];
+
+		LinkedList<Node> todo = new LinkedList<Node>();
+		LinkedList<Integer> hopcount = new LinkedList<Integer>();
+		LinkedList<String> path = new LinkedList<String>();
+		LinkedList<Integer> petmin = new LinkedList<Integer>();
+		LinkedList<Integer> petmax = new LinkedList<Integer>();
+		LinkedList<Integer> petsum = new LinkedList<Integer>();
+		LinkedList<Integer> intermin = new LinkedList<Integer>();
+		LinkedList<Integer> intermax = new LinkedList<Integer>();
+		LinkedList<Integer> intersum = new LinkedList<Integer>();
+		
+		todo.add(n);
+		hopcount.add(0);
+		path.add(""+n.getId());
+		int npetcount = 0;
+		petmin.add(npetcount);
+		petmax.add(npetcount);
+		petsum.add(npetcount);
+		
+		int nintercount = 0;
+		intermin.add(nintercount);
+		intermax.add(nintercount);
+		intersum.add(nintercount);
+
+		visited[n.getId()] = true;
+		
+		TreeMap<Integer, LinkedList<double[]>> mhmap = new TreeMap<Integer, LinkedList<double[]>>();
+		TreeMap<Integer, LinkedList<String>> mhpath = new TreeMap<Integer, LinkedList<String>>();
+
+		while(!todo.isEmpty()){
+			Node cn = todo.removeFirst();
+			int chc = hopcount.removeFirst();
+			String cp = path.removeFirst();
+			int cpetsum = petsum.removeFirst();
+			int cpetmin = petmin.removeFirst();
+			int cpetmax = petmax.removeFirst();
+			int cintersum = intersum.removeFirst();
+			int cintermin = intermin.removeFirst();
+			int cintermax = intermax.removeFirst();
+			int id = cn.getId();
+			
+			ARegion[] g = null;
+			if(id < gm.length){
+				g = gm[id];
+			}
+			
+
+			
+			if(g != null){
+				if(!mhmap.containsKey(id)){
+					mhmap.put(id, new LinkedList<double[]>());
+					mhpath.put(id, new LinkedList<String>());
+				}
+				
+				LinkedList<double[]> vlist = mhmap.get(id);
+				double[] oldvals = vlist.isEmpty() ? null : vlist.getLast();
+				int lasthc;
+				if(oldvals == null){
+					lasthc = Integer.MAX_VALUE;
+				}
+				else{
+					lasthc = (int) oldvals[0];
+				}
+				
+				int div = Math.max(chc, 1);
+				double[] vals = new double[] { chc, (double)cpetsum/div, cpetmin, cpetmax, (double)cintersum/div, cintermin, cintermax};
+				
+				if(chc < lasthc){
+					mhmap.put(id, new LinkedList<double[]>());
+					mhpath.put(id, new LinkedList<String>());
+				}
+				
+				if(chc <= lasthc){
+					mhmap.get(id).add(vals);
+					mhpath.get(id).add(cp);
+				}
+			}
+			
+			Edge[] edges = cn.getEdges();
+			for(int i = 0; i < edges.length; i++){
+				Node adjn = edges[i].getAdjacentNode(cn);
+				int adjid = adjn.getId();
+				int adjpetcount = edges[i].getPETCount();
+				int adjintercount = edges[i].getInteractionCount();
+
+				if(!visited[adjid]){
+					todo.add(adjn);
+					hopcount.add(chc+1);
+					path.add(cp+"|"+adjn.getId());
+					petsum.add(cpetsum+adjpetcount);
+					if(chc > 0){
+						petmin.add(Math.min(cpetmin, adjpetcount));
+						petmax.add(Math.max(cpetmax, adjpetcount));
+						intermin.add(Math.min(cintermin, adjintercount));
+						intermax.add(Math.max(cintermax, adjintercount));
+					}
+					else{
+						petmin.add(adjpetcount);
+						petmax.add(adjpetcount);
+						intermin.add(adjintercount);
+						intermax.add(adjintercount);
+					}
+					
+					intersum.add(cintersum+adjintercount);
+					visited[adjid] = true;
+				}
+			}
+		}
+		
+		LinkedList<NodeToTarget> rv = new LinkedList<NodeToTarget>();
+		while(!mhmap.isEmpty()){
+			Entry<Integer, LinkedList<double[]>> e = mhmap.pollFirstEntry();
+			LinkedList<double[]> vallists = e.getValue();
+			LinkedList<String> paths = mhpath.get(e.getKey());
+			ARegion[] gl = gm[e.getKey()];
+			
+			Iterator<double[]> valit = vallists.iterator();
+			Iterator<String> pathit = paths.iterator();
+			
+			while(valit.hasNext()){
+				double[] vals = valit.next();
+				int hc = (int) vals[0];
+				double avgp = vals[1];
+				int minp = (int) vals[2];
+				int maxp = (int) vals[3];
+				double avgi = vals[4];
+				int mini = (int) vals[5];
+				int maxi = (int) vals[6];
+				String fpath = pathit.next();
+				for(int i = 0; i < gl.length; i++){
+					rv.add(new NodeToTarget(r, gl[i], hc, avgp, minp, maxp, avgi, mini, maxi, fpath));
+				}
+			}
+
+		}
+		return rv.toArray(new NodeToTarget[0]);
+	}
+	
+	private TreeMap<Integer, Node> setNetwork(Connection conn, long fid){
+		TreeMap<Integer, Node> nodes = null;
+		try {
+			nodes = getNodes(conn, fid);
+			setEdges(conn, fid, nodes);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return nodes;
+	}
+	
+	private void setEdges(Connection conn, long fid, TreeMap<Integer, Node> nodes) throws SQLException{
+		String sql = "SELECT id, n1, n2, petcount, interactioncount FROM chiapet.Edges_"+fid;
+		
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ResultSet rs = ps.executeQuery();
+		while(rs.next()){
+			int id = rs.getInt(1);
+			Node n1 = nodes.get(rs.getInt(2));
+			Node n2 = nodes.get(rs.getInt(3));
+			int petcount = rs.getInt(4);
+			int interactioncount = rs.getInt(5);
+			
+			Interaction[] interactions = new Interaction[interactioncount];
+			Anchor a = new Anchor(0, "", 0, 0);
+			interactions[0] = new Interaction(0, a, a, petcount-interactions.length+1);
+			for(int i = 1; i < interactions.length; i++){
+				interactions[i] = new Interaction(0, a, a, 1);
+			}
+			
+			Edge e = new Edge(id, n1, n2, interactions);
+			n1.addEdge(e);
+			n2.addEdge(e);
+		}
+		
+	}
+	
+	private TreeMap<Integer, Node> getNodes(Connection conn, long fid) throws SQLException{
+		String sql = "SELECT id, chr, start, end FROM chiapet.Nodes_"+fid;
+		
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ResultSet rs = ps.executeQuery();
+		TreeMap<Integer, Node> rv = new TreeMap<Integer, Node>();
+		while(rs.next()){
+			int id = rs.getInt(1);
+			String chr = rs.getString(2);
+			int start  = rs.getInt(3);
+			int end = rs.getInt(4);
+			
+			
+			Node n = new Node(id, chr, start, end, new Anchor[0]);
+			rv.put(id,  n);
+		}
+		
+		rs.close();
+		ps.close();
+		return rv;
+	}
+	
+	private NARegion[][] getNodeIds(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException{
+		String schema = "chiapet";
+		String indextable = schema+".SIIndex_"+fid;
+		String nodetable = schema+".Nodes_"+fid;
+		String cctable = schema+".ConnectedComponents_"+fid;
+
+		NARegion[][] rv = new NARegion[indices.length][];
+		String sql = "SELECT i.nid, i.term, i.chr, i.start, i.end, c.nodecount, c.edgecount FROM "+indextable+" AS i, "+nodetable+" AS n, "+cctable+" AS c WHERE i.iid = ? AND n.id=i.nid AND n.ccid=c.id AND c.nodecount <= ? AND c.nodecount >= ?";
+
+		PreparedStatement ps = conn.prepareStatement(sql);
+		for(int i = 0; i < indices.length; i++){
+			Util u = new Util();
+			String dataset = u.getDataset(conn, fid, indices[i]);
+			ps.setInt(1, indices[i]);
+			ps.setInt(2, max);
+			ps.setInt(3, min);
+			ResultSet rs = ps.executeQuery();
+			LinkedList<NARegion> l = new LinkedList<NARegion>();
+			while(rs.next()){
+				l.add(new NARegion(dataset, rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7)));
+			}
+			rv[i] = l.toArray(new NARegion[0]);
+			rs.close();
+		}
+		ps.close();
+		return rv;
+	}
+
+	private ARegion[][] getNodeGeneMapping(Connection conn, long fid, String genome, int upstream, int downstream){
+		try {
+			return getNodeGeneMapping(getChrStartSortedNodeList(conn, fid), getChrPromoterStartSortedGeneList(conn, genome, upstream, downstream));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private ARegion[][] getNodeTargetMapping(Connection conn, long fid, int index) throws SQLException{
+		String schema = "chiapet";
+		String indextable = schema+".SIIndex_"+fid;
+		String sql = "SELECT nid, term, chr, start, end FROM "+indextable+" WHERE iid = ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, index);
+		ResultSet rs = ps.executeQuery();
+		TreeMap<Integer, LinkedList<ARegion>> map = new TreeMap<Integer, LinkedList<ARegion>>();
+		while(rs.next()){
+			int nid = rs.getInt(1);
+			String term = rs.getString(2);
+			String chr = rs.getString(3);
+			int start = rs.getInt(4);
+			int end = rs.getInt(5);
+			
+			if(!map.containsKey(nid)){
+				map.put(nid, new LinkedList<ARegion>());
+			}
+			
+			map.get(nid).add(new ARegion(term, chr, start, end));
+		}
+		rs.close();
+		ps.close();
+		
+		int l = 0;
+		if(map.size() > 0){
+			l = map.lastKey()+1;
+		}
+		ARegion[][] rv = new ARegion[l][];
+		while(!map.isEmpty()){
+			Entry<Integer, LinkedList<ARegion>> e = map.pollFirstEntry();
+			rv[e.getKey()] = e.getValue().toArray(new ARegion[0]);
+		}
+		return rv;
+	}
+	
+	private ARegion[][] getNodeGeneMapping(TreeMap<String, LinkedList<Node>> nodes, TreeMap<String, LinkedList<ARegion>> genes){
+		TreeMap<Integer, LinkedList<ARegion>> map = new TreeMap<Integer, LinkedList<ARegion>>();
+		while(!nodes.isEmpty()){
+			Entry<String, LinkedList<Node>> ne = nodes.pollFirstEntry();
+			Node[] nl = ne.getValue().toArray(new Node[0]);
+			LinkedList<ARegion> l = genes.get(ne.getKey());
+			if(l == null){
+				l = new LinkedList<ARegion>();
+			}
+			ARegion[] gl = l.toArray(new ARegion[0]);
+			
+			for(int i = 0; i < nl.length; i++){
+				Node cn = nl[i];
+				for(int j = 0; j < gl.length; j++){
+					ARegion cg = gl[j];
+					if(cg.getStart() <= cn.getEnd() && cn.getStart() <= cg.getEnd()){
+						int cid = cn.getId();
+						if(!map.containsKey(cid)){
+							map.put(cid, new LinkedList<ARegion>());
+						}
+						map.get(cid).add(cg);
+					}
+					else if(cg.getStart() > cn.getEnd()){
+						break;
+					}
+				}
+			}
+			
+		}
+		
+		
+		ARegion[][] rv = new ARegion[map.lastKey()+1][];
+		
+		while(!map.isEmpty()){
+			Entry<Integer, LinkedList<ARegion>> e = map.pollFirstEntry();
+			rv[e.getKey()] = e.getValue().toArray(new ARegion[0]);
+		}
+		
+		return rv;
+	}
+	
+	private TreeMap<String, LinkedList<Node>> getChrStartSortedNodeList(Connection conn, long fid) throws SQLException{
+		String sql = "SELECT id, chr, start, end FROM chiapet.Nodes_"+fid+" AS p ORDER BY start ASC";
+		
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ResultSet rs = ps.executeQuery();
+		TreeMap<String, LinkedList<Node>> sortednodelist = new TreeMap<String, LinkedList<Node>>();
+		while(rs.next()){
+			int id = rs.getInt(1);
+			String chr = rs.getString(2);
+			int start  = rs.getInt(3);
+			int end = rs.getInt(4);
+			
+			if(!sortednodelist.containsKey(chr)){
+				sortednodelist.put(chr, new LinkedList<Node>());
+			}
+			
+			Node n = new Node(id, chr, start, end, new Anchor[0]);
+			sortednodelist.get(chr).add(n);
+		}
+		
+		rs.close();
+		ps.close();
+		return sortednodelist;
+	}
+		
+		
+	private TreeMap<String, LinkedList<ARegion>> getChrPromoterStartSortedGeneList(Connection conn, String genome, int upstream, int downstream) throws SQLException{
+		if(!genome.equals("hg19") && !genome.equals("hg38")){
+			genome = "hg19";
+		}
+		String sql = "SELECT * FROM ((SELECT genename AS gene, chrom AS chr, txstart-"+upstream+" AS start, txstart+"+downstream+" AS end FROM ucsc."+genome+" WHERE strand='+') UNION"
+				+ "(SELECT genename AS gene, chrom AS chr, txend-"+downstream+" AS start, txend+"+upstream+" AS end FROM ucsc."+genome+" WHERE strand='-')) AS p ORDER BY start ASC";
+		
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ResultSet rs = ps.executeQuery();
+		TreeMap<String, LinkedList<ARegion>> sortedgenelist = new TreeMap<String, LinkedList<ARegion>>();
+		while(rs.next()){
+			String gene = rs.getString(1);
+			String chr = rs.getString(2);
+			int start  = rs.getInt(3);
+			int end = rs.getInt(4);
+			
+			if(!sortedgenelist.containsKey(chr)){
+				sortedgenelist.put(chr, new LinkedList<ARegion>());
+			}
+			
+			ARegion g = new ARegion(gene, chr, start, end);
+			sortedgenelist.get(chr).add(g);
+		}
+		
+		rs.close();
+		ps.close();
+		return sortedgenelist;
+	}
+		
+	
+	private class ARegion {
+		
+		private String _term;
+		private String _chr;
+		private int _start;
+		private int _end;
+		
+		public ARegion(String term, String chr, int start, int end){
+			_term = term;
+			_chr = chr;
+			_start = start;
+			_end = end;
+		}
+		
+		public String getTerm(){
+			return _term;
+		}
+		
+		public String getChr(){
+			return _chr;
+		}
+		
+		public int getStart(){
+			return _start;
+		}
+		
+		public int getEnd(){
+			return _end;
+		}
+		
+	}
+	
+	private class NARegion extends ARegion {
+		private String _dataset;
+		private int _nid;
+		private int _numnodes;
+		private int _numedges;
+		public NARegion(String dataset, int nid, String term, String chr, int start, int end, int numnodes, int numedges) {
+			super(term, chr, start, end);
+			_dataset = dataset;
+			_nid = nid;
+			_numnodes = numnodes;
+			_numedges = numedges;
+		}
+
+		public int getNID(){
+			return _nid;
+		}
+		
+		public String getDataset(){
+			return _dataset;
+		}
+		
+		public int getNodeCount(){
+			return _numnodes;
+		}
+		
+		public int getEdgeCount(){
+			return _numedges;
+		}
+		
+	}
+	
+	private class NodeToTarget {
+		private NARegion _node;
+		private ARegion _gene;
+		private int _hopcount;
+		private int _minpet, _maxpet;
+		private int _mininter, _maxinter;
+		private double _avgpet, _avginter;
+		private String _path;
+		
+		public NodeToTarget(NARegion node, ARegion gene, int hopcount, double avgpet, int minpet, int maxpet, double avginter, int mininter, int maxinter, String path){
+			_node = node;
+			_gene = gene;
+			_hopcount = hopcount;
+			_avgpet = avgpet;
+			_minpet = minpet;
+			_maxpet = maxpet;
+			_avginter = avginter;
+			_mininter = mininter;
+			_maxinter = maxinter;
+			_path = path;
+		}
+		
+		public NARegion getNodeInfo(){
+			return _node;
+		}
+		
+		public ARegion getGeneInfo(){
+			return _gene;
+		}
+		
+		public int getHopCount(){
+			return _hopcount;
+		}
+		
+		public String getPath(){
+			return _path;
+		}
+	}
+	
+}

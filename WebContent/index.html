@@ -1,0 +1,737 @@
+<html>
+	<meta charset="UTF-8">
+	<head>
+		<title>QuIN - Query tool for Interaction Networks</title>
+		<script src="js/jquery-2.1.1.min.js"></script>
+		<script src="js/jquery-ui-1.11.1.min.js"></script> 
+		<script src="js/cytoscape.min.js"></script>
+		<script src="js/lib/arbor.js"></script>
+		<script src="js/lib/cola.adaptor.js"></script>
+		<script src="js/lib/cola.v3.min.js"></script>
+		<script src="js/lib/dagre.js"></script>
+		<script src="js/lib/springy.js"></script>
+		<script src="js/spectrum.js"></script>
+		<script src="js/network-options.js"></script>
+		<script src="js/network.js"></script>
+		<script src="js/index.js"></script>
+ 		<link rel="stylesheet" href="css/jquery-ui/jquery-ui.min.css" />
+ 		<link rel="stylesheet" href="css/jquery-ui/jquery-ui.structure.min.css" />
+ 		<link rel="stylesheet" href="css/jquery-ui/jquery-ui.theme.min.css" />
+ 		<link rel="stylesheet" href="css/network.css" />
+ 		<link rel="stylesheet" href="css/index.css" />
+ 		<link rel="stylesheet" href="css/centrality.css" />
+ 		<link rel="stylesheet" href="css/spectrum.css" />
+	</head>
+	<body>
+		<div id="appwrapper">
+			<div id="app">
+				<div id="appmenu">
+					<div id="menuaccordion">
+						<h3>Upload Interaction Data</h3>
+						<div>
+							<div class="inputs">
+								<div class="description">
+									Upload BED (.bed) files (Duplicate inter-chromosome entries at the beginning of the file and description matching &quot;chr1:1000..2000-chr2:1000..2000,2&quot; where the last number is the PET count/score) or seven column tab delimited (.txt) files (chr start end chr start end, pet count/score).
+								</div>
+								<br />
+								<div>
+									<form id="uploadchiapetform" onsubmit="return false;">
+										<div class="inputelement">
+											<div class="inputname">File:</div>
+											<div class="inputform"><input type="file" name="u_chiapet" id="u_chiapet"/></div>
+										</div>
+										<br />
+										<div class="inputelement">
+											<div class="inputname">Interaction Data Label (Optional):</div>
+											<div class="inputform"><input type="text" name="u_chiapetlabel" id="u_chiapetlabel"/></div>
+										</div>
+										<div class="buttondiv"><button type="reset" id="resetuploadchiapet" class="ureset">Reset</button>&nbsp;<button id="uploadchiapet" class="uupload">Upload</button></div>
+									</form>
+								</div>
+							</div>
+						</div>
+						<h3>Build Network</h3>
+						<div>
+							<div class="description">
+								Build the network of the interaction data. Parameter parameters are available here: <a href="parameters.html" target="_blank">Parameter Descriptions</a>
+							</div>
+							<div class="inputs">
+								<form id="buildform" onsubmit="return false;">
+									<div class="inputelement">
+										<div class="inputname">Name:</div>
+										<div class="inputform"><input type="text" name="b_name" id="b_name"/></div>
+
+									</div>
+									<div class="inputelement">
+										<div class="inputname">Interaction Data:</div>
+										<div class="inputform">
+											<select name="b_dataset" id="b_dataset" class="uiselect">
+												<option value="-1">None</option>
+											</select>
+										</div>
+									</div>
+									<div class="inputelement">
+										<div class="inputname">Node Locations (Optional):</div>
+										<div class="inputform">
+											<select name="b_rf" id="b_rf" class="superimposedsets uiselect">
+												<option value="-1">None</option>										
+											</select>
+										</div>
+									</div>
+
+									<div class="inputelement">
+										<div class="inputname">Node/Anchor Extension:</div>
+										<div class="inputform"><input type="text" name="b_minpet" id="b_ext" value="0"/></div>
+									</div>
+									<div class="inputelement">
+										<div class="inputname">Min Paired Ends/Score Per Edge:</div>
+										<div class="inputform"><input type="text" name="b_minpet" id="b_minpet" value="0"/></div>
+									</div>
+									<div class="inputelement">
+										<div class="inputname">Interactions:</div>
+										<div class="inputform">
+											<label for="b_intermintra"><input type="radio" checked="checked" name="b_intermin" id="b_intermintra" value="1"/> Intra-Chromosome</label><br />
+											<label for="b_interminter"><input type="radio" name="b_intermin" id="b_interminter" value="-1"/> Inter-Chromosome</label><br />
+											<label for="b_interminb"><input type="radio" name="b_intermin" id="b_interminb" value="0"/> Both</label>
+										</div>
+									</div>
+									<div class="inputelement">
+										<div class="inputname">Max Intrachromosome Distance (bp):</div>
+										<div class="inputform"><input type="text" name="b_maxdist" id="b_maxdist" value="1000000"/></div>
+									</div>
+									<div class="buttondiv"><button id="resetbuild">Reset</button>&nbsp;<button id="build">Build Network</button></div>
+								</form>
+							</div>
+						</div>
+						
+						<!-- <h3>Merge Networks</h3>
+						<div>
+							<div class="description">
+								Intersect two networks together where the nodes and edges are only the nodes and edges that exist on both networks.
+							</div>
+							<div class="inputs">
+								<form id="mergeform" onsubmit="return false;">
+									<div class="inputelement">
+										<div class="inputname">Name:</div>
+										<div class="inputform"><input type="text" name="m_name" id="m_name"/></div>
+
+									</div>
+									<div class="inputelement">
+										<div class="inputname">Network 1:</div>
+										<div class="inputform">
+											<select name="m_n2" id="m_n1" class="uiselect">
+												<option value="-1">None</option>
+											</select>
+										</div>
+									</div>
+									<div class="inputelement">
+										<div class="inputname">Network 2:</div>
+										<div class="inputform">
+											<select name="m_n2" id="m_n2" class="uiselect">
+												<option value="-1">None</option>
+											</select>
+										</div>
+									</div>
+									<div class="buttondiv"><button id="resetmerge">Reset</button>&nbsp;<button id="merge">Merge Networks</button></div>
+								</form>
+							</div>
+						</div>
+						 -->
+						<h3>Upload Region Files</h3>
+						<div>
+							<div class="inputs">
+								<div class="description">
+									Upload a BED (.bed) or three column tab delimited text (.txt) files (chr start end) for annotating specific regions on the network.
+								</div>
+								<br />
+								<div>
+									<form id="uploadbedform" onsubmit="return false;">
+										<div class="inputelement">
+											<div class="inputname">File:</div>
+											<div class="inputform"><input type="file" name="u_bedfile" id="u_bedfile"/></div>
+										</div>
+										<br />
+										<div class="inputelement">
+											<div class="inputname">Region File Label (Optional):</div>
+											<div class="inputform"><input type="text" name="u_bedlabel" id="u_bedlabel"/></div>
+										</div>
+										<div class="buttondiv"><button  type="reset"  id="resetbedupload" class="ureset">Reset</button>&nbsp;<button id="uploadbed" class="uupload">Upload</button></div>
+									</form>
+								</div>
+							</div>
+						</div>
+						<h3>Upload Gene List</h3>
+						<div>
+							<div class="inputs">
+								<div class="description">
+									Upload a list of genes or create a list below to use for annotating and querying the network.  
+									Additionally, a gene list can be uploaded while adding any genes provided in the gene list form below.  Genes should be separated by new lines.
+								</div>
+								<br />
+								<div>
+									<form id="uploadgeneform" onsubmit="return false;">
+										<div class="inputelement">
+											<div class="inputname">File:</div>
+											<div class="inputform"><input type="file" name="u_genefile" id="u_genefile"/></div>
+										</div>
+										<br />
+										<div class="inputelement" id="creategenelist">
+											<div class="inputname">Gene List:</div>
+											<div class="inputform"><textarea name="u_genelist" id="u_genelist"></textarea></div>
+										</div>
+										<br />
+										<div class="inputelement">
+											<div class="inputname">Gene List Label (Optional):</div>
+											<div class="inputform"><input type="text" name="u_genelabel" id="u_genelabel"/></div>
+										</div>
+										<div class="buttondiv"><button  type="reset"  id="resetgeneupload" class="ureset">Reset</button>&nbsp;<button id="uploadgene" class="uupload">Upload</button></div>
+									</form>
+								</div>
+							</div>
+						</div>
+						<h3>Upload Disease/Trait List</h3>
+						<div>
+							<div class="inputs">
+								<div class="description">
+									Upload a list of traits/diseases or create a list below to use for annotating and querying the network.  
+									Additionally, a list can be uploaded while adding any genes provided in the gene list form below.  Traits/Diseases should be separated by new lines and based on the traits/diseases found in the
+									<a href="http://www.genome.gov/gwastudies/" target="_blank">GWAS Catalog</a>.
+								</div>
+								<br />
+								<div>
+									<form id="uploadtdform" onsubmit="return false;">
+										<div class="inputelement">
+											<div class="inputname">File:</div>
+											<div class="inputform"><input type="file" name="u_tdfile" id="u_tdfile"/></div>
+										</div>
+										<br />
+										<div class="inputelement" id="creategenelist">
+											<div class="inputname">Disease/Trait List:</div>
+											<div class="inputform"><textarea name="u_tdlist" id="u_tdlist"></textarea></div>
+										</div>
+										<br />
+										<div class="inputelement">
+											<div class="inputname">Disease/Trait List Label (Optional):</div>
+											<div class="inputform"><input type="text" name="u_tdlabel" id="u_tdlabel"/></div>
+										</div>
+										<div class="buttondiv"><button  type="reset"  id="resettdupload" class="ureset">Reset</button>&nbsp;<button id="uploadtd" class="uupload">Upload</button></div>
+									</form>
+								</div>
+							</div>
+						</div>
+						<h3>Upload SNP List</h3>
+						<div>
+							<div class="inputs">
+								<div class="description">
+									Upload a list of SNPs using their RefSNP id.
+								</div>
+								<br />
+								<div>
+									<form id="uploadsnpform" onsubmit="return false;">
+										<div class="inputelement">
+											<div class="inputname">File:</div>
+											<div class="inputform"><input type="file" name="u_snpfile" id="u_snpfile"/></div>
+										</div>
+										<br />
+										<div class="inputelement" id="creategenelist">
+											<div class="inputname">SNP List:</div>
+											<div class="inputform"><textarea name="u_snplist" id="u_snplist"></textarea></div>
+										</div>
+										<br />
+										<div class="inputelement">
+											<div class="inputname">SNP List Label (Optional):</div>
+											<div class="inputform"><input type="text" name="u_snplabel" id="u_snplabel"/></div>
+										</div>
+										<div class="buttondiv"><button  type="reset"  id="resetsnpupload" class="ureset">Reset</button>&nbsp;<button id="uploadsnp" class="uupload">Upload</button></div>
+									</form>
+								</div>
+							</div>
+						</div>
+						<h3>Explore Network</h3>
+						<div>
+							<div class="description">
+									Choose a network to explore.  Choosing a dataset to superimpose on the network will restrict the view to only components that
+									have an annotation from the lists of datasets selected.  An example has been pre-selected (click view network to view).
+									If no data is shown please click the Reload Data button.
+							</div>
+							<br />
+							<div>
+								<form id="viewform" onsubmit="return false;">
+									<div class="inputelements">
+										<div class="inputname">Network:</div>
+										<div class="inputform">
+											<select name="e_chiapet" id="e_chiapet" class="uiselect">
+												<option value="-1">None</option>					
+											</select>
+										</div>
+									</div>
+									<!-- <div class="inputelements">
+										<div class="inputname">Trait Annotations:</div>
+										<div class="inputform">
+											<select name="traitdb" id="traitdb" class="uiselect">
+												<option value="2">GWAS</option>
+												<option value="1">ClinVar</option>									
+											</select>
+										</div>
+									</div>
+									-->
+									<div class="inputelement">
+										<div class="inputname">Component Size:</div>
+										<div class="inputform">Min: <input type="text" name="e_size1" id="e_size1" value="2" size="4"/> Max:<input type="text" name="e_size2" id="e_size2" value="" size="4"/></div>
+									</div>
+									
+									<div class="inputelements">
+										<div class="inputname">Node Annotations:</div>
+										<div class="inputform">
+											<div id="superimposedsets">
+												<div class="superimposedelement" style="display: inline-block;">
+													<div style="width: 80%; float: left;">
+														<select class="superimposedsets uiselect" style="width:100%;">
+															<option value="-1">None</option>										
+														</select>
+													</div>
+													<div style="width: 20%; display: block; text-align: right; float: right;" class="superimposedcolordiv">
+														<input type="text" class="superimposedcolor" />
+													</div>
+												</div>
+											</div>
+											<div>
+												<a href="javascript:addSuperImposedSet()" style="display: block; text-align: right;">Add Annotation</a>
+											</div>																		
+										</div>
+										<div class="inputname"><label for="annotatedonly">View Only Annotated Components: <input type="checkbox" name="annotatedonly" id="annotatedonly" value="true" checked="checked" /></label></div>
+										<div class="inputname">Sort Components By:</div>
+										<div class="inputform">
+											<select name="sortby" id="sortby">
+												<option value="1">Number of Nodes</option>
+												<option value="2">Number of Edges</option>
+												<option value="3">Number of Annotations</option>
+											</select>
+										</div>
+									</div>
+									<div class="buttondiv"><button id="loaddata">Reload Data</button>&nbsp;<button id="view">View</button></div>
+								</form>
+							</div>
+						</div>
+					</div>
+					<br />
+					<div><span style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;">Tutorial</span> <a href="tutorial.docx" style="font-family: arial; font-size: 14px; color: #000;">DOCX</a>/<a href="tutorial.pdf" style="font-family: arial; font-size: 14px; color: #000;">PDF</a></div>
+					<div><a id="videolink" href="#" style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;">Video Introduction</a> <a href="videos/videotutorial.mp4" style="font-family: arial; font-size: 14px; color: #000;">MP4</a>/<a href="videos/videotutorial.ogg" style="font-family: arial; font-size: 14px; color: #000;">OGG</a></div>
+					<br />
+					<div><a href="interpretation.html" style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;" target="_blank">Interpretation Guide</a></div>
+					
+					<br />
+					<div class="infotext">
+						<b>Data/Database:</b>
+						<br />
+						Data for <a href = "http://www.ncbi.nlm.nih.gov/clinvar/" target="_blank">Clinvar</a>, <a href = "http://www.ncbi.nlm.nih.gov/projects/SNP/" target="_blank">dbSNP (GRCH37.p13)</a>, <a href = "http://www.ncbi.nlm.nih.gov/gene" target="_blank">NCBI Gene Databases (gene2go &amp; gene2refseq)</a>, <a href = "https://genome.ucsc.edu/" target="_blank">UCSC hg19 Refflat Database</a> last updated on 6/25/2015.
+						<br/>
+						<br/>
+						Data for <a href = "http://www.genome.gov/gwastudies/" target="_blank">The GWAS Catalog</a> and preloaded <a href = "http://genome.ucsc.edu/ENCODE/" target="_blank">ENCODE datasets</a> last updated on 6/30/2015.
+						<br/>
+						<br/>
+						<b>GEO Accessions For Preloaded Datasets:</b>
+						<br />
+						MCF-7 Pol2 ChIAPET - GSM970209
+						<br />
+						MCF-7 H3K4me3 - GSM945269
+						<br />
+						MCF-7 H3K27ac - GSM945854
+						<br />
+						<br />
+						K562 Pol2 ChIAPET - GSM970213
+						<br />
+						K562 H3K4me3 - GSM733680
+						<br />
+						K562 H3K27ac - GSM733656
+						
+					</div>
+					<br />
+					<br />
+					<div class="infotext">Compatible with browsers that support HTML5 and have Javascript enabled.</div>
+					
+				</div>
+				<div id="divider">				
+					<span id="menutoggle" class="ui-icon ui-icon-triangle-1-w"></span>
+				</div>
+				<div id="appbody">
+					<div id="apptabs">
+						<ul>
+							<li><a href="#tabs-1">Network Visualization</a></li>
+							<li><a href="#tabs-2">Network Summary</a></li>
+							<li><a href="#tabs-3">Centrality Measures</a></li>
+						</ul>
+						<div id="tabs-1">
+							<div id="networkwrapper">
+								<div id="networkview">
+									<div id="npanel1">
+										<div class="npwrapper">
+											<div class="csstablefix">&nbsp;</div>
+											<div id="network"></div>
+											<div id="networkoptions">
+												<div>
+													<div id="cclinks">&nbsp;</div>
+													<div style="text-align: right;"><b>Component:</b> <input type="text" id="gotocc" size="6" /><button id="gotoccb">Go</button>&nbsp;</div>
+												</div>
+												<div id="optionpanel" class="ui-corner-top ui-corner-bottom">
+													<div id="search">
+														<div class="inputform">
+															<div class="inputelement">
+																<div class="inputform"><input type="text" name="searchterm" id="searchterm"/>&nbsp;<button id="searchcomponents">Search</button></div>
+																<div id="searchresults">
+																	<div id="searchresultsresults">&nbsp;</div>
+																	<div id="searchresultsclose"><a href="#" id="searchclose">Close</a></div>
+																</div>
+															</div>
+															<div id="searchdesc"><b>Search for:</b>
+																<div>Gene Symbol</div>
+																<div>Region (example: chr1:1000-3000)</div>
+																<div>SNP (example: rs123456)</div>
+															</div>
+														</div>
+													</div>
+													<div id="exportimage">
+														<div class="inputform">
+															<div class="inputname"><button id="exportimagebutton">Export Network Image</button></div>
+														</div>
+														<br />
+														<div class="inputform">
+															<div class="inputname">
+																<form method="post" action="exportnetwork" id="exportnetworkform">
+																	<input type="hidden" name="network" id="exportnetwork_network" value="-1">
+																	<input type="hidden" name="minsize" id="exportnetwork_minsize" value="">
+																	<input type="hidden" name="maxsize" id="exportnetwork_maxsize" value="">
+																	
+																	<button id="exportnetwork">Export Network</button>
+																</form>
+															</div>
+														</div>
+														<div class="inputform">
+															<div class="inputname">
+																<button id="exportmhdialog">Shortest Path Analysis</button>
+															</div>
+														</div>
+														<br />
+														<div class="inputform">
+															<div class="inputname">
+																<form method="post" action="exportca" id="exportcaform">
+																	<input type="hidden" name="network" id="exportca_network" value="-1">
+																	<input type="hidden" name="genes" id="exportca_genes" value="-1">
+																	<input type="hidden" name="diseases" id="exportca_diseases" value="-1">
+																	<input type="hidden" name="regions" id="exportca_regions" value="-1">
+																	<input type="hidden" name="snps" id="exportca_snps" value="-1">
+																	<input type="hidden" name="minsize" id="exportca_minsize" value="">
+																	<input type="hidden" name="maxsize" id="exportca_maxsize" value="">
+																	<button id="exportca">Component Annotations</button>
+																</form>
+															</div>
+														</div>
+													</div>
+													<div id="layoutoptions">
+														<div class="inputelement">
+															<div class="inputname">Layout:</div>
+															<div class="inputform">
+																<select id="layoutselect" class="uiselect">
+																	<optgroup label="Basic">
+																		<option value="1">Random</option>
+																		<option value="2">Grid</option>
+																	</optgroup>
+																	<optgroup label="Hierarchical">
+																		<option value="3">Breadth First</option>
+																	</optgroup>
+																	<optgroup label="DAG">
+																		<option value="4">Dagre</option>
+																	</optgroup>
+																	<optgroup label="Circular">
+																		<option value="5">Circle</option>
+																		<option value="6">Concentric</option>				
+																	</optgroup>
+																	<optgroup label="Force Directed">
+																		<option value="7">Compound Spring Embedder</option>
+																		<option value="8">Arbor</option>
+																		<option value="9">Springy</option>
+																		<option value="10">Cola</option>
+																	</optgroup>
+																</select>
+															</div>
+														</div>
+														<div>
+															<input type="checkbox" id="nlabels" checked="checked"></input><label for="nlabels">Node Labels</label>
+														</div>
+														<div>
+															<input type="checkbox" id="elabels" checked="checked"></input><label for="elabels">Edge Labels</label>
+														</div>
+													</div>
+													<div id="viewoptions">
+														<div class="viewrow">
+															<div class="viewcell">&nbsp;</div>
+															<div class="viewcell"><button id="pann"><span class="ui-icon ui-icon-triangle-1-n">&nbsp;</span></button></div>
+															<div class="viewcell">&nbsp;</div>
+														</div>
+														<div class="viewrow">
+															<div class="viewcell"><button id="panw"><span class="ui-icon ui-icon-triangle-1-w">&nbsp;</span></button></div>
+															<div class="viewcell"><button id="reset"><span class="ui-icon ui-icon-bullet">&nbsp;</span></button></div>
+															<div class="viewcell"><button id="pane"><span class="ui-icon ui-icon-triangle-1-e">&nbsp;</span></button></div>
+														</div>
+														<div class="viewrow">
+															<div class="viewcell">&nbsp;</div>
+															<div class="viewcell"><button id="pans" ><span class="ui-icon ui-icon-triangle-1-s">&nbsp;</span></button></div>
+															<div class="viewcell">&nbsp;</div>
+														</div>
+													</div>
+													<div id="zoomoptions">
+														<div id="zoominpanel"><button id="zoomin" ><span class="ui-icon ui-icon-plus">&nbsp;</span></button></div>
+														<div id="zoomoutpanel"><button id="zoomout" ><span class="ui-icon ui-icon-minus">&nbsp;</span></button></div>
+													</div>
+												</div>
+											</div>
+											<br />
+											<div id="goanalysis">
+												<div class="ui-corner-top ui-state-active networkmenu-header">GO Enrichment Analysis</div>
+												<div  class="np2content ui-corner-bottom">
+													<div id="goresults">
+														<div id="gowrapper">
+															<div id="gotable"><div id="goenrichment">&nbsp;</div></div>
+															<div id="gospacer">&nbsp;</div>
+															<div id="gooptions">
+																<button id="componentenrichment">Run&nbsp;Analysis</button>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div id="npanelspace">&nbsp;</div>
+									<div id="npanel2">
+										<div class="npwrapper">
+											<div class="ui-corner-top ui-state-active networkmenu-header">Network Statistics</div>
+											<div id="networkinfo" class="np2content"></div>
+											<div class="ui-state-active networkmenu-header">Component Statistics</div>
+											<div id="componentinfo" class="np2content"></div>
+											<div class="ui-state-active networkmenu-header">Legend</div>
+											<div id="legendcontainer" class="np2content ui-corner-bottom"><div id="legend">&nbsp;</div></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div id="tabs-2">
+							<div>
+								<table class="nstable">
+									<tr class="nstableheader">
+										<th colspan="2"><div id="ns_name">No Network Selected</div></th>
+									</tr>
+									<tr>
+										<td>Number of Components</td>
+										<td><div id="ns_comp">&nbsp;</div></td>
+									</tr>
+									<tr>
+										<td>Number of Nodes</td>
+										<td><div id="ns_node">&nbsp;</div></td>
+									</tr>
+									<tr>
+										<td>Number of Edges</td>
+										<td><div id="ns_edge">&nbsp;</div></td>
+									</tr>
+									<tr>
+										<td>Average PET per Edge</td>
+										<td><div id="ns_avgpet">&nbsp;</div></td>
+									</tr>
+								</table>
+							</div>
+							<br />
+							<br />  
+							<div>
+								<table class="nstable">
+								<tr class="nstableheader">
+									<th colspan="2">Parameters</th>
+								</tr>
+								<tr>
+									<td>Extend</td>
+									<td><div id="ns_extend">&nbsp;</div></td>
+								</tr>
+								<tr>
+									<td>Minimum PET per Edge</td>
+									<td><div id="ns_minpet">&nbsp;</div></td>
+								</tr>
+								<tr>
+									<td>Interaction Type</td>
+									<td><div id="ns_inter">&nbsp;</div></td>
+								</tr>
+								<tr>
+									<td>Max Intrachromosome Distance</td>
+									<td><div id="ns_intra">&nbsp;</div></td>
+								</tr>
+								<tr>
+									<td>Minimum Component Size</td>
+									<td><div id="ns_mincompsize">&nbsp;</div></td>
+								</tr>
+								<tr>
+									<td>Maximum Component Size</td>
+									<td><div id="ns_maxcompsize">&nbsp;</div></td>
+								</tr>
+							</table>
+							</div>
+							<div>&nbsp;</div>
+							<div id="nshistogram">&nbsp;</div>
+						</div>
+						
+						<div id="tabs-3">
+							<div></div>
+							<button id="loadnm">Load Network Measures</button>
+							<div class="inputname">
+								Network measures over all components.  Values are normalized with respect to their component.
+							</div>
+							<br />
+							<div id="centrality">
+								<div class="inputname">Degree:</div>
+								<div id="degreeboxplot"></div>
+								<br />
+								<div class="inputname">Closeness:</div>
+								<div id="closenessboxplot"></div>
+								<br />
+								<div class="inputname">Harmonic:</div>
+								<div id="harmonicboxplot"></div>
+								<br />
+								<div class="inputname">Betweenness:</div>
+								<div id="betweennessboxplot"></div>							
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="uploaddialog" title="File Upload">
+			<div id="u_progressbar" class="progressbar"><div class="progresslabel" id="u_progresslabel"></div></div>
+			<div class="buttondiv" id="u_progressclosediv"><button id="u_progressclose">Close</button></div>
+		</div>
+		<div id="builddialog" title="Build Network">
+			<div id="b_progressbar" class="progressbar"><div class="progresslabel" id="b_progresslabel"></div></div>
+			<div class="buttondiv" id="b_progressclosediv"><button id="b_progressclose">Close</button></div>
+		</div>
+		<div id="nodeinfodialog" title="Node Information">
+			<div id="nodeinfo" class="ui-widget">
+				<div id="ngen" class="geninfo">
+					<div class="geninfocaption">General Information</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">Location:</div>
+						<div id="nlocationlink" class="geninfoelement">&nbsp;</div>
+					</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">PET Count/score:</div>
+						<div id="npetcount" class="geninfoelement">&nbsp;</div>
+					</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">Interaction Count:</div>
+						<div id="nintercount" class="geninfoelement">&nbsp;</div>
+					</div>
+				</div>
+				
+				<div id="ncentrality" class="t">
+					<div class="tcaption">Centrality Measures</div>
+					<div class="tr ui-state-active">
+						<div class="tc label">Type</div>
+						<div class="tc label">Non-Normalized</div>
+						<div class="tc label">Network Normalized</div>
+						<div class="tc label">Component Normalized</div>
+					</div>
+					<div class="tr">
+						<div class="tc">Degree</div>
+						<div id="nnondegree" class="tc">&nbsp;</div>
+						<div id="nndegree" class="tc">&nbsp;</div>
+						<div id="ncdegree" class="tc">&nbsp;</div>
+					</div>
+					<div class="tr">
+						<div class="tc">Closeness</div>
+						<div id="nnoncloseness" class="tc">&nbsp;</div>
+						<div id="nncloseness" class="tc">&nbsp;</div>
+						<div id="nccloseness" class="tc">&nbsp;</div>
+					</div>
+					<div class="tr">
+						<div class="tc">Harmonic</div>
+						<div id="nnonharmonic" class="tc">&nbsp;</div>
+						<div id="nnharmonic" class="tc">&nbsp;</div>
+						<div id="ncharmonic" class="tc">&nbsp;</div>
+					</div>
+					<div class="tr">
+						<div class="tc">Betweenness</div>
+						<div id="nnonbetweenness" class="tc">&nbsp;</div>
+						<div id="nnbetweenness" class="tc">&nbsp;</div>
+						<div id="ncbetweenness" class="tc">&nbsp;</div>
+					</div>
+				</div>
+				<div id="nsnps" class="t"></div>
+			</div>
+		</div>
+		<div id="edgeinfodialog" title="Edge Information">
+			<div id="edgeinfo" class="ui-widget">
+				<div id="egen" class="geninfo">
+					<div class="geninfocaption">General Information</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">Inner Span:</div>
+						<div id="elocationispan" class="geninfoelement">&nbsp;</div>
+					</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">Outer Span:</div>
+						<div id="elocationospan" class="geninfoelement">&nbsp;</div>
+					</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">Location 1:</div>
+						<div id="elocationlink1" class="geninfoelement">&nbsp;</div>
+					</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">Location 2:</div>
+						<div id="elocationlink2" class="geninfoelement">&nbsp;</div>
+					</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">PET Count/Score:</div>
+						<div id="epetcount" class="geninfoelement">&nbsp;</div>
+					</div>
+					<div class="geninfoelements">
+						<div class="geninfoelement label">Interaction Count:</div>
+						<div id="eintercount" class="geninfoelement">&nbsp;</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="exportimagedialog" title="Export Image">
+			<div>Right click the image below and choose "Save Image As"</div>
+			<div><img width="800" height="600" id="exportimage-image" src=""/></div>
+		</div>
+		
+		<div id="videotutorial" title="Video Tutorial">
+			<video width="800" height="600" controls="controls" preload="none">
+			  <source src="videos/videotutorial.mp4" type="video/mp4">
+			  <source src="videos/videotutorial.ogg" type="video/ogg">
+			</video>
+		</div>
+		
+		<div id="exportminhopdialog" title="Export Min Hop File">
+			<div>Select the target:</div>
+			<div>
+				<form method="post" action="exportminhop" id="exportmhform">
+					<input type="hidden" name="network" id="exportmh_network" value="-1">
+					<input type="hidden" name="genes" id="exportmh_genes" value="-1">
+					<input type="hidden" name="diseases" id="exportmh_diseases" value="-1">
+					<input type="hidden" name="regions" id="exportmh_regions" value="-1">
+					<input type="hidden" name="snps" id="exportmh_snps" value="-1">
+					<input type="hidden" name="minsize" id="exportmh_minsize" value="">
+					<input type="hidden" name="maxsize" id="exportmh_maxsize" value="">
+					<select  id="minhoptarget" name="target">
+						<option value="promoter">Promoters</option>
+					</select>
+					<button id="exportmh">Export</button>
+				</form>
+			</div>
+		</div>
+		
+		<div id="cookiemessage" title="Cookie Information">
+			Cookies are used in this web application to store information for linking uploaded data to your browser.
+			  If cookies are deleted for this site on your browser, access to the uploaded data is also unfortunately removed.
+			  In the future we hope to provide alternatives such as links to the data for future use as well as sharing.
+		</div>
+		
+	</body>
+</html>

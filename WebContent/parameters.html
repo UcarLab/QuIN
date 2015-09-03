@@ -1,0 +1,123 @@
+<html>
+<head>
+<title>Parameter Description</title>
+<link rel="stylesheet" href="css/parameter.css">
+</head>
+<body>
+	<div id="parameterdesc" title="Parameter Descriptions">
+		<div>
+			<b>Anchor Extension:</b>
+		</div>
+		<div>
+			<img src="images/ext.png" width="712" height="179" />
+		</div>
+		<div>When determining the nodes of the network, the anchor
+			extension parameter extends span of the interaction anchors in order
+			to add flexibility when grouping anchors into nodes where the
+			interactions between the anchors will form the edges. The extension
+			parameter is used only to merge locations. Regions for nodes are
+			based on the minimum and maximum locations of the anchors defining
+			the node.</div>
+
+		<br /> <br /> <br />
+
+		<div>
+			<b>Min PET:</b>
+		</div>
+		<div>
+			<img src="images/minpet1.png" width="360" height="180" />
+		</div>
+		<div>To look only at strongly connected networks, the min PET
+			parameter allows for filtering the edges such that only edges with at
+			least this many PETs will be shown. The PET count for the network is
+			defined as the sum of all the PETs from the interactions forming the
+			edge in the network.</div>
+		<div>
+			<img src="images/minpet2.png" width="360" height="180" />
+		</div>
+		<div>In the above example, since the min PET parameter is set to
+			6, the edge with only 5 for its PET count is removed.</div>
+		<div>
+			<img src="images/minpet3.png" width="360" height="180" />
+		</div>
+		<div>Finally if a node is left without any edges, it is remove
+			from the network.</div>
+
+		<br /> <br /> <br />
+		<div>
+			<b>Max Intra-Chromosome Distance/Min PET Exceeding
+				Intra-Chromosome Distance:</b>
+		</div>
+		<div>
+			<img src="images/intra1.png" width="554" height="238" />
+		</div>
+		<div>For interactions occuring on the same chromosome,
+			interactions with very long distances between them may be unlikely.
+			To account for this, the max-intra-chromsome distance parameter
+			allows for setting a maximum distance for edges to consider. For
+			flexibility, the Min PET Exceeding Intra-Chromosome Distance
+			parameter allows for keeping some of these long distant interactions
+			if there is a high enough PET count.</div>
+		<div>
+			<img src="images/intra2.png" width="554" height="238" />
+		</div>
+		<div>Considering the above example, there are two long distant interactions defined as edges.</div>
+		<div>
+			<img src="images/intra3.png" width="554" height="238" />
+		</div>
+		<div>Only the edge with the PET above the threshold provided is kept in the network.</div>
+
+		<br /> <br /> <br />
+		<div>
+			<b>Min PET For Inter-chromosome Edges:</b>
+		</div>
+		<div>
+			<img src="images/inter1.png" width="603" height="227" />
+		</div>
+		<div>Although inter-chromsome occur, they can be unlikely
+			occurrences. To take these interactions into account the min PET for
+			inter-chromosome edges parameter filters edges, leaving only
+			inter-chromosome edges above the PET threshold.</div>
+		<div>
+			<img src="images/inter2.png" width="603" height="227" />
+		</div>
+		<div>In the above example, two inter-chromosome edges exist in
+			the component.</div>
+		<div>
+			<img src="images/inter3.png" width="603" height="227" />
+		</div>
+		<div>Only the inter-chromsome edge with a high enough PET count
+			remains as an edge in the network.</div>
+
+		<br /> <br /> <br />
+		<div>
+			<b>Minimum Component Size/Min PET Below Component Size:</b>
+		</div>
+		<div>
+			<img src="images/minsize1.png" width="768" height="281" />
+		</div>
+		<div>The minimum component size parameter allows for filtering
+			components such that only components with at least the specified
+			number of nodes are provided. Setting this number to a high value
+			allows for only considering highly connected networks. The Min PET
+			below component size parameter adds flexibility in that it allows for
+			keeping components that have an edge with a high PET count.</div>
+		<div>
+			<img src="images/minsize2.png" width="768" height="281" />
+		</div>
+		<div>In the above example, the first component will be in the
+			network because the number of nodes satisfies the min-size parameter.</div>
+		<div>
+			<img src="images/minsize3.png" width="768" height="281" />
+		</div>
+		<div>The third component will also be in the network because
+			although it doesn't have the sufficient number of nodes, it has an
+			interaction with a high enough PET count.</div>
+		<div>
+			<img src="images/minsize4.png" width="768" height="281" />
+		</div>
+		<div>This leaves the second component as not being in the
+			network because it fails to satisfy either criteria</div>
+	</div>
+</body>
+</html>
