@@ -360,6 +360,7 @@
 							<li><a href="#tabs-1">Network Visualization</a></li>
 							<li><a href="#tabs-2">Network Summary</a></li>
 							<li><a href="#tabs-3">Centrality Measures</a></li>
+							<li><a href="#tabs-4">Shortest Path Analysis</a></li>
 						</ul>
 						<div id="tabs-1">
 							<div id="networkwrapper">
@@ -578,8 +579,9 @@
 						</div>
 						
 						<div id="tabs-3">
-							<div></div>
-							<button id="loadnm">Load Network Measures</button>
+							<div>
+								<button id="loadnm">Load Network Measures</button>
+							</div>
 							<div class="inputname">
 								Network measures over all components.  Values are normalized with respect to their component.
 							</div>
@@ -597,6 +599,13 @@
 								<div class="inputname">Betweenness:</div>
 								<div id="betweennessboxplot"></div>							
 							</div>
+						</div>
+						<div id="tabs-4">
+							<div>
+								<button id="loadsph">Generate Heatmap</button>
+							</div>
+							<br />
+							<div id="sph">&nbsp;</div>
 						</div>
 					</div>
 				</div>

@@ -136,6 +136,28 @@ $(function(){
 		$("#exportminhopdialog").dialog("close");
 	});
 	
+	$("#loadsph").click(function(){
+		$.ajax({
+			url : "shortestpathheatmap",
+			data: {
+				network: ccidata.network,
+				genes: ccidata.genes,
+				diseases: ccidata.diseases,
+				regions: ccidata.regions,
+				snps: ccidata.snps,
+				minsize: ccidata.minsize,
+				maxsize: ccidata.maxsize
+			},
+			dataType : "json",
+			cache: false,
+			type : "post",
+			}).success(function(data) {
+				$("#sph").empty().append('<img src="data:image/png;base64,'+data+'">');
+			}).error(function(req, status, error) {
+				//TODO
+			});
+	});
+	
 	$("#exportca").click(function(){
 		$("#exportca_network").val(ccidata.network);
 		$("#exportca_genes").val(JSON.stringify(ccidata.genes));

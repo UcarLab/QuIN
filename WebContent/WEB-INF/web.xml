@@ -130,9 +130,14 @@
     <servlet-class>quin.web.servlets.ExportComponentAnnotationCounts</servlet-class>
   </servlet>
   
-    <servlet>
+  <servlet>
     <servlet-name>firstvisit</servlet-name>
     <servlet-class>quin.web.servlets.FirstVisitServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>shortestpathheatmap</servlet-name>
+    <servlet-class>quin.web.servlets.ShortestPathHeatmapServlet</servlet-class>
   </servlet>
   
   <servlet-mapping>
@@ -243,6 +248,11 @@
   <servlet-mapping>
     <servlet-name>firstvisit</servlet-name>
     <url-pattern>/firstvisit</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>shortestpathheatmap</servlet-name>
+    <url-pattern>/shortestpathheatmap</url-pattern>
   </servlet-mapping>
   
   <listener>

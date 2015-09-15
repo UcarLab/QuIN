@@ -12,7 +12,6 @@ public class DatabaseUpdater implements Runnable{
 		//updateGWAS(); test and this updates correctly
 		//updateNCBIGene();
 	}
-	
 	/*private void updateDbSNP(){
 		//Update dbSNP ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b142_GRCh37p13/chr_rpts/  replace human9606_b142 with correct build
 		System.out.println("Updating dbSNP.");

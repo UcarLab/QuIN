@@ -13,7 +13,6 @@ public class OldDataRemoverExecutor implements ServletContextListener{
 
     private ScheduledExecutorService _executor;
 	
-    
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
 		_executor = Executors.newSingleThreadScheduledExecutor();
