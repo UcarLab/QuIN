@@ -169,6 +169,15 @@ $(function(){
 		$("#exportcaform").submit();
 	});
 	
+	$("#exportna").click(function(){
+		$("#exportna_network").val(ccidata.network);
+		$("#exportna_genes").val(JSON.stringify(ccidata.genes));
+		$("#exportna_diseases").val(JSON.stringify(ccidata.diseases));
+		$("#exportna_regions").val(JSON.stringify(ccidata.regions));
+		$("#exportna_snps").val(JSON.stringify(ccidata.snps));
+		$("#exportnaform").submit();
+	});
+	
 	$("#gotoccb").button();
 	$("#gotoccb").click(function(){
 		var cc = parseInt($("#gotocc").val().trim());

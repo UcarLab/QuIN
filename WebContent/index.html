@@ -315,20 +315,25 @@
 						</div>
 					</div>
 					<br />
-					<div><span style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;">Tutorial</span> <a href="tutorial.docx" style="font-family: arial; font-size: 14px; color: #000;">DOCX</a>/<a href="tutorial.pdf" style="font-family: arial; font-size: 14px; color: #000;">PDF</a></div>
+					<div><span style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;">Tutorial:</span> <a href="tutorial.docx" style="font-family: arial; font-size: 14px; color: #000;">DOCX</a>/<a href="tutorial.pdf" style="font-family: arial; font-size: 14px; color: #000;">PDF</a></div>
 					<div><a id="videolink" href="#" style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;">Video Introduction</a> <a href="videos/videotutorial.mp4" style="font-family: arial; font-size: 14px; color: #000;">MP4</a>/<a href="videos/videotutorial.ogg" style="font-family: arial; font-size: 14px; color: #000;">OGG</a></div>
 					<br />
 					<div><a href="interpretation.html" style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;" target="_blank">Interpretation Guide</a></div>
+					<br />
+					<div style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;">Source: <a href="https://github.com/ajt986/QuIN" style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;" target="_blank">https://github.com/ajt986/QuIN</a> <span style="font-weight: normal">(<a href="https://github.com/ajt986/QuIN/blob/master/LICENSE" style="font-family: arial; font-size: 14px; color: #000; font-weight: normal;" target="_blank">License</a>)</span></div>
 					
 					<br />
 					<div class="infotext">
 						<b>Data/Database:</b>
 						<br />
-						Data for <a href = "http://www.ncbi.nlm.nih.gov/clinvar/" target="_blank">Clinvar</a>, <a href = "http://www.ncbi.nlm.nih.gov/projects/SNP/" target="_blank">dbSNP (GRCH37.p13)</a>, <a href = "http://www.ncbi.nlm.nih.gov/gene" target="_blank">NCBI Gene Databases (gene2go &amp; gene2refseq)</a>, <a href = "https://genome.ucsc.edu/" target="_blank">UCSC hg19 Refflat Database</a> last updated on 6/25/2015.
+						Data for <a href = "http://www.ncbi.nlm.nih.gov/clinvar/" target="_blank">Clinvar</a>, <a href = "http://www.ncbi.nlm.nih.gov/projects/SNP/" target="_blank">dbSNP (GRCH37.p13)</a>, <a href = "http://www.ncbi.nlm.nih.gov/gene" target="_blank">NCBI Gene Databases (gene2go &amp; gene2refseq)</a> and <a href = "https://genome.ucsc.edu/" target="_blank">UCSC hg19 Refflat Database</a> last updated on 6/25/2015.
 						<br/>
 						<br/>
 						Data for <a href = "http://www.genome.gov/gwastudies/" target="_blank">The GWAS Catalog</a> and preloaded <a href = "http://genome.ucsc.edu/ENCODE/" target="_blank">ENCODE datasets</a> last updated on 6/30/2015.
 						<br/>
+						<!-- <br/>
+						Data for <a href = "https://genome.ucsc.edu/" target="_blank">UCSC hg19 Refflat Database</a> last updated on 10/1/2015
+						<br/>-->
 						<br/>
 						<b>GEO Accessions For Preloaded Datasets:</b>
 						<br />
@@ -360,7 +365,7 @@
 							<li><a href="#tabs-1">Network Visualization</a></li>
 							<li><a href="#tabs-2">Network Summary</a></li>
 							<li><a href="#tabs-3">Centrality Measures</a></li>
-							<li><a href="#tabs-4">Shortest Path Analysis</a></li>
+							<!-- <li><a href="#tabs-4">Shortest Path Analysis</a></li>-->
 						</ul>
 						<div id="tabs-1">
 							<div id="networkwrapper">
@@ -415,6 +420,20 @@
 														<br />
 														<div class="inputform">
 															<div class="inputname">
+																<form method="post" action="nodeannotations" id="exportnaform">
+																	<input type="hidden" name="network" id="exportna_network" value="-1">
+																	<input type="hidden" name="genes" id="exportna_genes" value="-1">
+																	<input type="hidden" name="diseases" id="exportna_diseases" value="-1">
+																	<input type="hidden" name="regions" id="exportna_regions" value="-1">
+																	<input type="hidden" name="snps" id="exportna_snps" value="-1">
+																	<input type="hidden" name="minsize" id="exportna_minsize" value="">
+																	<input type="hidden" name="maxsize" id="exportna_maxsize" value="">
+																	<button id="exportna">Export Node Annotations</button>
+																</form>
+															</div>
+														</div>
+														<div class="inputform">
+															<div class="inputname">
 																<form method="post" action="exportca" id="exportcaform">
 																	<input type="hidden" name="network" id="exportca_network" value="-1">
 																	<input type="hidden" name="genes" id="exportca_genes" value="-1">
@@ -423,7 +442,7 @@
 																	<input type="hidden" name="snps" id="exportca_snps" value="-1">
 																	<input type="hidden" name="minsize" id="exportca_minsize" value="">
 																	<input type="hidden" name="maxsize" id="exportca_maxsize" value="">
-																	<button id="exportca">Component Annotations</button>
+																	<button id="exportca">Export Component Annotations</button>
 																</form>
 															</div>
 														</div>
@@ -600,13 +619,14 @@
 								<div id="betweennessboxplot"></div>							
 							</div>
 						</div>
-						<div id="tabs-4">
+						<!-- <div id="tabs-4">
 							<div>
 								<button id="loadsph">Generate Heatmap</button>
 							</div>
 							<br />
 							<div id="sph">&nbsp;</div>
 						</div>
+						-->
 					</div>
 				</div>
 			</div>

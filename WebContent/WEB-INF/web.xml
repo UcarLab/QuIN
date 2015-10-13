@@ -140,6 +140,11 @@
     <servlet-class>quin.web.servlets.ShortestPathHeatmapServlet</servlet-class>
   </servlet>
   
+  <servlet>
+    <servlet-name>nodeannotations</servlet-name>
+    <servlet-class>quin.web.servlets.ExportNodeAnnotationsServlet</servlet-class>
+  </servlet>
+  
   <servlet-mapping>
     <servlet-name>uploadchiapet</servlet-name>
     <url-pattern>/uploadchiapet</url-pattern>
@@ -254,6 +259,12 @@
     <servlet-name>shortestpathheatmap</servlet-name>
     <url-pattern>/shortestpathheatmap</url-pattern>
   </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>nodeannotations</servlet-name>
+    <url-pattern>/nodeannotations</url-pattern>
+  </servlet-mapping>
+  
   
   <listener>
     <listener-class>upkeep.DatabaseUpdaterExecutor</listener-class>

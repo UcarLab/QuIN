@@ -10,7 +10,7 @@ var colorindex = [];
 var datasetindex = 1;
 
 $(function(){	
-	$(".ureset, .uupload, #u_progressclose, #b_progressclose, #resetbuild, #build, #resetview, #view, #merge, #resetmerge, #loaddata, #exportca").button();
+	$(".ureset, .uupload, #u_progressclose, #b_progressclose, #resetbuild, #build, #resetview, #view, #merge, #resetmerge, #loaddata, #exportca, #exportna").button();
 	
 	
 	$("#uploadchiapet").click(function(){
