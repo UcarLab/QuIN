@@ -83,13 +83,15 @@ public class NodeExtraction {
 				continue;
 			}
 			int ai = 0;
-			int pi = 0;
 			@SuppressWarnings("unchecked")
 			LinkedList<Anchor>[] potentialnodes = new LinkedList[chrpeaks.length];
 
 			for(int i = 0; i < chrpeaks.length; i++){
-				Location curpeak = chrpeaks[i];
 				potentialnodes[i] = new LinkedList<Anchor>();
+			}
+			
+			for(int i = 0; i < chrpeaks.length; i++){
+				Location curpeak = chrpeaks[i];
 				Location prevpeak = curpeak;
 				Location nextpeak = curpeak;
 				if(i > 0){
@@ -98,52 +100,148 @@ public class NodeExtraction {
 				if(i+1 < chrpeaks.length){
 					nextpeak = chrpeaks[i+1];
 				}
+				
+//				//Step 1 - Check previous anchors to make sure that they can't also be assigned to the next peaks
+//				int li = i-1;
+//				for(int i2 = 0; i2 < pi; i2++){
+//					//Remove if the anchor is not overlapping with just one without extending
+//					Anchor a = potentialnodes[li].removeLast();
+//					LinkedList<Anchor> putback = new LinkedList<Anchor>();
+//
+//					if(!(a.getStart() <= curpeak.getEnd()+ext && curpeak.getStart() <= a.getEnd()+ext)){ //if doesn't overlap with the current peak, add it back
+//						putback.add(a);
+//					}
+//					else{	//Otherwise, do a tiebreaker where the anchor is put in the single node that overlaps without extension, ambiguous if both
+//						int tb = tiebreak(chrpeaks[li], a, curpeak);
+//						if(tb < 0){
+//							putback.add(a);
+//						}
+//						else if(tb > 0){
+//							potentialnodes[i].add(a);
+//						}
+//						else {
+//							a.getInteraction().setReason(Interaction.AMBIGUOUS);
+//						}
+//					}
+//					
+//					potentialnodes[li].addAll(putback);
+//					ai++;
+//				}
+				
+				while(ai < chranchors.length){
+					Anchor a = (Anchor)chranchors[ai];
+					int astart = a.getStart();
+					int aend = a.getEnd();
+					setMinDistance(prevpeak, a, curpeak);
 
-				//Step 1
-				int li = i-1;
-				for(int i2 = 0; i2 < pi; i2++){
-					//Remove if the anchor is not overlapping with just one without extending
-					Anchor a = potentialnodes[li].removeLast();
-					LinkedList<Anchor> putback = new LinkedList<Anchor>();
+					int cstart = curpeak.getStart();
+					int cend = curpeak.getEnd();
+					
+					int nstart = nextpeak.getStart();
+					int nend = nextpeak.getEnd();
+					
+					boolean ceo = isOverlapping(astart, aend, cstart-ext, cend+ext);
+					boolean neo = cstart != nstart && isOverlapping(astart, aend, nstart-ext, nend+ext);
+					
+					double d = aend-astart;
 
-					if(!(a.getStart() <= curpeak.getEnd()+ext && curpeak.getStart() <= a.getEnd()+ext)){ //if doesn't overlap with the current peak, add it back
-						putback.add(a);
-					}
-					else{	//Otherwise, do a tiebreaker where the anchor is put in the single node that overlaps without extension, ambiguous if both
-						int tb = tiebreak(chrpeaks[li], a, curpeak);
-						if(tb < 0){
-							putback.add(a);
+					if(ceo && neo){
+						boolean co = isOverlapping(astart,aend, cstart, cend);
+						boolean no = isOverlapping(astart,aend, nstart, nend);
+
+						if((co && no)){
+
+							//Assign to the one that's at least 50% overlapping one 
+							int coverlap = cend - Math.max(astart, cstart);
+							int noverlap = Math.min(aend, nend) - nstart;
+							
+							if(coverlap/d > 0.5){
+								potentialnodes[i].add(a);
+							}
+							else if(noverlap/d > 0.5){
+								potentialnodes[i+1].add(a);
+							}
+							else{
+								coverlap = (cend+ext) - Math.max(astart, cstart);
+								noverlap = Math.min(aend, nend) - (nstart-ext);
+								
+								double cp = coverlap/d;
+								double np = noverlap/d;
+							
+								if(cp > 0.5 && np < 0.5){
+									potentialnodes[i].add(a);
+								}
+								else if(np > 0.5 && cp < 0.5){
+									potentialnodes[i+1].add(a);
+								}
+								else{
+									a.getInteraction().setReason(Interaction.AMBIGUOUS);
+								}
+							}
+							
 						}
-						else if(tb > 0){
+						else if((!co && !no)){
+							int coverlap = (cend+ext) - Math.max(astart, cstart);
+							int noverlap = Math.min(aend, nend) - (nstart-ext);
+							
+							double cp = coverlap/d;
+							double np = noverlap/d;
+						
+							if(cp > 0.5 && np < 0.5){
+								potentialnodes[i].add(a);
+							}
+							else if(np > 0.5 && cp < 0.5){
+								potentialnodes[i+1].add(a);
+							}
+							else{
+								a.getInteraction().setReason(Interaction.AMBIGUOUS);
+							}
+						}
+						else if(co){
 							potentialnodes[i].add(a);
 						}
 						else {
-							a.getInteraction().setReason(Interaction.AMBIGUOUS);
+							potentialnodes[i+1].add(a);
 						}
 					}
-					
-					potentialnodes[li].addAll(putback);
-					ai++;
-				}
-				
-				//Step 2
-				while(ai < chranchors.length && chranchors[ai].getEnd() <= curpeak.getEnd()-ext){
-					Anchor anchor  = (Anchor)chranchors[ai];
-					if(curpeak.getStart() <= chranchors[ai].getEnd()+ext){
-						potentialnodes[i].add(anchor);
+					else if(ceo){
+						potentialnodes[i].add(a);
 					}
-					setMinDistance(prevpeak, anchor, curpeak);
+					else if(neo){
+						potentialnodes[i+1].add(a);
+						ai++;
+						break;	//Shouldn't get here, but if we do move onto the next node
+					}
+					else{
+						if(astart > cend+ext){
+							//move on to the next peak
+							break;
+						}
+					}
 					ai++;
 				}
 				
-				//Step 3
-				pi = 0;
-				while((ai+pi) < chranchors.length && chranchors[ai+pi].getStart() <= curpeak.getEnd()+ext){
-					Anchor a = (Anchor)chranchors[ai+pi];
-					potentialnodes[i].add(a);
-					setMinDistance(curpeak, a, nextpeak);
-					pi++;
-				}
+//				//Step 2 - Assign anchors to nodes that cannot possibly be assigned to the next node (assumes the node/peak file is non-overlapping)
+//				while(ai < chranchors.length && chranchors[ai].getEnd() <= curpeak.getEnd()-ext){
+//					Anchor anchor  = (Anchor)chranchors[ai];
+//					if(curpeak.getStart() <= anchor.getEnd()+ext){
+//						potentialnodes[i].add(anchor);
+//					}
+//					setMinDistance(prevpeak, anchor, curpeak);
+//					ai++;
+//				}
+//				
+//				//Step 3 - Assign anchors to nodes but keep track of them since they can overlap more than one node
+//				while(ai < chranchors.length && chranchors[ai].getStart() <= curpeak.getEnd()+ext){
+//					if(curpeak.getStart() <= a.getEnd()+ext){
+//						
+//					}
+//					else if(curpeak != nextpeak && )
+//					
+//					potentialnodes[i].add(a);
+//					setMinDistance(curpeak, a, nextpeak);
+//					ai++;
+//				}
 			}
 			Location lastpeak = chrpeaks[chrpeaks.length-1];
 			for(int i = ai; i < chranchors.length; i++){
@@ -164,6 +262,7 @@ public class NodeExtraction {
 			}
 		}
 		
+		System.out.println(nodes.size());
 		return nodes.toArray(new Node[0]);
 	}
 	
@@ -176,20 +275,24 @@ public class NodeExtraction {
 		}
 	}
 	
-	private int tiebreak(Location pn, Anchor a, Location sn){
-		boolean ipn = pn.getEnd() <= a.getStart() && pn.getStart() <= a.getEnd();
-		boolean isn = sn.getEnd() <= a.getStart() && sn.getStart() <= a.getEnd();
-		
-		if(ipn && !isn){
-			return -1;
-		}
-		
-		if(isn && !ipn){
-			return 1;
-		}
-		
-		return 0;
+	private boolean isOverlapping(int s1, int e1, int s2, int e2){
+		return (s2 <= e1 && s1 <= e2);
 	}
+	
+//	private int tiebreak(Location pn, Anchor a, Location sn){
+//		boolean ipn = pn.getEnd() <= a.getStart() && pn.getStart() <= a.getEnd();
+//		boolean isn = sn.getEnd() <= a.getStart() && sn.getStart() <= a.getEnd();
+//		
+//		if(ipn && !isn){
+//			return -1;
+//		}
+//		
+//		if(isn && !ipn){
+//			return 1;
+//		}
+//		
+//		return 0;
+//	}
 	
 	
 }
