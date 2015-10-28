@@ -79,7 +79,7 @@ public class ExportMinHopFile {
 		
 		try {
 			ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zf));
-			zipFile(zos, f1, "minhops.txt");
+			zipFile(zos, f1, "shortestpaths.txt");
 			zipFile(zos, f2, "nodeidmap.txt");
 			zos.close();
 

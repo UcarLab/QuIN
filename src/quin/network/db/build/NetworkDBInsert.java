@@ -48,7 +48,7 @@ public class NetworkDBInsert {
 		}
 	}
 	
-	private void createTables(Connection conn, long fid) throws SQLException{
+	public void createTables(Connection conn, long fid) throws SQLException{
 		createNetworkTable(conn, fid);
 		createCCTable(conn, fid);
 		createNodeTable(conn, fid);

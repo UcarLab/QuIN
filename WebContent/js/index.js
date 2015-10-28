@@ -18,6 +18,11 @@ $(function(){
 		$("#uploadchiapetform")[0].reset();
 	});
 	
+	$("#import_upload").click(function(){
+		importNetwork();
+		$("#importform")[0].reset();
+	});
+	
 	$("#uploadbed").click(function(){
 		uploadBEDFile();
 		$("#uploadbedform")[0].reset();
@@ -149,7 +154,7 @@ $(function(){
 		icons: null,
 		heightStyle: "content",
 		autoHeight: false,
-		active: 6
+		active: 7
 	});
 
 	$("#apptabs").tabs({
@@ -265,6 +270,15 @@ function uploadChIAPETData(){
 	data.append('file', $('#u_chiapet')[0].files[0]);
 
 	uploadAjax("uploadchiapet", data);
+}
+
+function importNetwork(){
+	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File");
+	var data = new FormData();
+	data.append('name', $('#import_label').val());
+	data.append('file', $('#import_file')[0].files[0]);
+
+	uploadAjax("importnetwork", data);
 }
 
 function uploadBEDFile(){

@@ -55,7 +55,7 @@ public class Util {
 	}
 	
 	private void remove(Connection conn, long uid, long fid, String sessionschema, String sessiontable) throws SQLException{
-		String sql = "REMOVE FROM "+sessionschema+"."+sessiontable+" WHERE uid=? AND fid=?";
+		String sql = "DELETE FROM "+sessionschema+"."+sessiontable+" WHERE uid=? AND fid=?";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setLong(1, uid);
 		ps.setLong(2, fid);

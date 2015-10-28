@@ -145,6 +145,11 @@
     <servlet-class>quin.web.servlets.ExportNodeAnnotationsServlet</servlet-class>
   </servlet>
   
+  <servlet>
+    <servlet-name>importnetwork</servlet-name>
+    <servlet-class>quin.web.servlets.ImportNetworkServlet</servlet-class>
+  </servlet>
+  
   <servlet-mapping>
     <servlet-name>uploadchiapet</servlet-name>
     <url-pattern>/uploadchiapet</url-pattern>
@@ -265,6 +270,10 @@
     <url-pattern>/nodeannotations</url-pattern>
   </servlet-mapping>
   
+  <servlet-mapping>
+    <servlet-name>importnetwork</servlet-name>
+    <url-pattern>/importnetwork</url-pattern>
+  </servlet-mapping>
   
   <listener>
     <listener-class>upkeep.DatabaseUpdaterExecutor</listener-class>

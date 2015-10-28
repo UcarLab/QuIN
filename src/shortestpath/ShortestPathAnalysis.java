@@ -329,8 +329,8 @@ public class ShortestPathAnalysis {
 		String sql = "SELECT i.nid, i.term, i.chr, i.start, i.end, c.nodecount, c.edgecount FROM "+indextable+" AS i, "+nodetable+" AS n, "+cctable+" AS c WHERE i.iid = ? AND n.id=i.nid AND n.ccid=c.id AND c.nodecount <= ? AND c.nodecount >= ?";
 
 		PreparedStatement ps = conn.prepareStatement(sql);
+		Util u = new Util();
 		for(int i = 0; i < indices.length; i++){
-			Util u = new Util();
 			String dataset = u.getDataset(conn, fid, indices[i]);
 			ps.setInt(1, indices[i]);
 			ps.setInt(2, max);

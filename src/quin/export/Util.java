@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.TreeSet;
 
 public class Util {
 
@@ -42,6 +43,22 @@ public class Util {
 			return getSNPListDataset(conn, did);
 		}
 		return null;
+	}
+	
+	public TreeSet<Integer> getAnnotationNodeIds(Connection conn, long fid, int ssid) throws SQLException{
+		String table = "chiapet.SIIndex_"+fid;
+		String sql = "SELECT DISTINCT NID FROM "+table+" AS si WHERE iid=?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, ssid);
+		ResultSet rs = ps.executeQuery();
+		TreeSet<Integer> rv = new TreeSet<Integer>();
+		while(rs.next()){
+			rv.add(rs.getInt(1));
+		}
+		rs.close();
+		ps.close();
+		return rv;
+
 	}
 	
 	private String getDataset(Connection conn, long did, String table) throws SQLException{

@@ -104,6 +104,26 @@
 							</div>
 						</div>
 						
+						<h3>Import Network</h3>
+						<div>
+							<div class="description">
+								Import network file (.gml) previously exported using QuIN.
+							</div>
+							<div class="inputs">
+									<form id="importform" onsubmit="return false;">
+										<div class="inputelement">
+											<div class="inputname">File:</div>
+											<div class="inputform"><input type="file" name="import_file" id="import_file"/></div>
+										</div>
+										<br />
+										<div class="inputelement">
+											<div class="inputname">Network Label (Optional):</div>
+											<div class="inputform"><input type="text" name="import_label" id="import_label"/></div>
+										</div>
+										<div class="buttondiv"><button type="reset" id="import_reset" class="ureset">Reset</button>&nbsp;<button id="import_upload" class="uupload">Import</button></div>
+									</form>
+							</div>
+						</div>
 						<!-- <h3>Merge Networks</h3>
 						<div>
 							<div class="description">
@@ -365,7 +385,7 @@
 							<li><a href="#tabs-1">Network Visualization</a></li>
 							<li><a href="#tabs-2">Network Summary</a></li>
 							<li><a href="#tabs-3">Centrality Measures</a></li>
-							<!-- <li><a href="#tabs-4">Shortest Path Analysis</a></li>-->
+							<!-- <li><a href="#tabs-4">Shortest Path Analysis</a></li> -->
 						</ul>
 						<div id="tabs-1">
 							<div id="networkwrapper">
@@ -398,53 +418,11 @@
 													</div>
 													<div id="exportimage">
 														<div class="inputform">
-															<div class="inputname"><button id="exportimagebutton">Export Network Image</button></div>
+															<div class="inputname"><button id="exportimagebutton">Save Network Image</button></div>
 														</div>
 														<br />
 														<div class="inputform">
-															<div class="inputname">
-																<form method="post" action="exportnetwork" id="exportnetworkform">
-																	<input type="hidden" name="network" id="exportnetwork_network" value="-1">
-																	<input type="hidden" name="minsize" id="exportnetwork_minsize" value="">
-																	<input type="hidden" name="maxsize" id="exportnetwork_maxsize" value="">
-																	
-																	<button id="exportnetwork">Export Network</button>
-																</form>
-															</div>
-														</div>
-														<div class="inputform">
-															<div class="inputname">
-																<button id="exportmhdialog">Shortest Path Analysis</button>
-															</div>
-														</div>
-														<br />
-														<div class="inputform">
-															<div class="inputname">
-																<form method="post" action="nodeannotations" id="exportnaform">
-																	<input type="hidden" name="network" id="exportna_network" value="-1">
-																	<input type="hidden" name="genes" id="exportna_genes" value="-1">
-																	<input type="hidden" name="diseases" id="exportna_diseases" value="-1">
-																	<input type="hidden" name="regions" id="exportna_regions" value="-1">
-																	<input type="hidden" name="snps" id="exportna_snps" value="-1">
-																	<input type="hidden" name="minsize" id="exportna_minsize" value="">
-																	<input type="hidden" name="maxsize" id="exportna_maxsize" value="">
-																	<button id="exportna">Export Node Annotations</button>
-																</form>
-															</div>
-														</div>
-														<div class="inputform">
-															<div class="inputname">
-																<form method="post" action="exportca" id="exportcaform">
-																	<input type="hidden" name="network" id="exportca_network" value="-1">
-																	<input type="hidden" name="genes" id="exportca_genes" value="-1">
-																	<input type="hidden" name="diseases" id="exportca_diseases" value="-1">
-																	<input type="hidden" name="regions" id="exportca_regions" value="-1">
-																	<input type="hidden" name="snps" id="exportca_snps" value="-1">
-																	<input type="hidden" name="minsize" id="exportca_minsize" value="">
-																	<input type="hidden" name="maxsize" id="exportca_maxsize" value="">
-																	<button id="exportca">Export Component Annotations</button>
-																</form>
-															</div>
+															<div class="inputname"><button id="exportoptions">Export Options</button></div>
 														</div>
 													</div>
 													<div id="layoutoptions">
@@ -725,7 +703,7 @@
 			</div>
 		</div>
 		
-		<div id="exportimagedialog" title="Export Image">
+		<div id="exportimagedialog" title="Save Image">
 			<div>Right click the image below and choose "Save Image As"</div>
 			<div><img width="800" height="600" id="exportimage-image" src=""/></div>
 		</div>
@@ -737,29 +715,48 @@
 			</video>
 		</div>
 		
-		<div id="exportminhopdialog" title="Export Min Hop File">
-			<div>Select the target:</div>
-			<div>
-				<form method="post" action="exportminhop" id="exportmhform">
-					<input type="hidden" name="network" id="exportmh_network" value="-1">
-					<input type="hidden" name="genes" id="exportmh_genes" value="-1">
-					<input type="hidden" name="diseases" id="exportmh_diseases" value="-1">
-					<input type="hidden" name="regions" id="exportmh_regions" value="-1">
-					<input type="hidden" name="snps" id="exportmh_snps" value="-1">
-					<input type="hidden" name="minsize" id="exportmh_minsize" value="">
-					<input type="hidden" name="maxsize" id="exportmh_maxsize" value="">
-					<select  id="minhoptarget" name="target">
-						<option value="promoter">Promoters</option>
-					</select>
-					<button id="exportmh">Export</button>
-				</form>
-			</div>
-		</div>
-		
 		<div id="cookiemessage" title="Cookie Information">
 			Cookies are used in this web application to store information for linking uploaded data to your browser.
 			  If cookies are deleted for this site on your browser, access to the uploaded data is also unfortunately removed.
 			  In the future we hope to provide alternatives such as links to the data for future use as well as sharing.
+		</div>
+		
+		<div id="exportdialog" title="Export Options">
+			<div style="font-weight: bold;">Export:</div>
+			<div>
+				<form method="post" action="" id="exportform">
+					<input type="hidden" name="network" id="export_network" value="-1">
+					<input type="hidden" name="genes" id="export_genes" value="-1">
+					<input type="hidden" name="diseases" id="export_diseases" value="-1">
+					<input type="hidden" name="regions" id="export_regions" value="-1">
+					<input type="hidden" name="snps" id="export_snps" value="-1">
+					<input type="hidden" name="minsize" id="export_minsize" value="">
+					<input type="hidden" name="maxsize" id="export_maxsize" value="">
+					<select  id="export_type" name="export_type">
+						<option value="1">Network (.gml)</option>
+						<option value="2">Node Annotations (.txt)</option>
+						<option value="3">Component Annotations (.txt)</option>
+						<option value="4">Shortest Path Analysis (.zip)</option>
+					</select>
+					<div id="export_additionaloptions">
+						<div id="exportshortestpathoptions">
+							<div>
+								<div style="font-weight: bold;">Target:</div> 
+								<div>Note: The source nodes are determined by the annotations on the network.  If the network is not annotated, the shortest path analysis will not return any results.</div>
+							</div>
+							<div>
+							<select  id="exportspatarget" name="target">
+								<option value="promoter">Promoters</option>
+							</select>
+							</div>
+						</div>
+					</div>
+					<br />
+					<div style="text-align: right;">
+						<button id="export">Export</button>
+					</div>
+				</form>
+			</div>
 		</div>
 		
 	</body>

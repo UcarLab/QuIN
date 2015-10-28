@@ -134,10 +134,18 @@ public class ExportMinHopServlet extends HttpServlet{
 			e1.printStackTrace();
 		}
 		
+		Util u = new Util();
+		String networkname = network+"_"+fid;
+		try {
+			networkname = u.getNetworkName(conn, fid);
+			networkname = networkname.replaceAll("[^a-zA-Z0-9]", "");
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
 		
 		
 		resp.setContentType("text/plain");
-		resp.setHeader("Content-Disposition", "attachment;filename=MinHopExport.zip");
+		resp.setHeader("Content-Disposition", "attachment;filename="+networkname+"_ShortestPaths.zip");
 		ServletOutputStream os = resp.getOutputStream();
 		byte[] buffer = new byte[1024];
 		

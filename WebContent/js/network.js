@@ -670,7 +670,7 @@ function getTable(labels, data){
 	for(var i = 0; i < labels.length; i++){
 		html += '<tr><td>'+labels[i]+'</td>';
 		for(var j = 0; j < labels.length; j++){
-			html += '<td>'+parseFloat(data[i][j]).toExponential(4)+'</td>';
+			html += '<td>'+parseFloat(data[i+1][j+1]).toExponential(4)+'</td>';
 		}
 		html += '</tr>'
 	}

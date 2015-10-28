@@ -1,5 +1,5 @@
 $(function(){
-	$("#pann, #pans, #pane, #panw, #zoomin, #zoomout, #subgraph, #reset, #searchcomponents, #componentenrichment, #exportnetwork, #exportmhdialog, #exportmh").button();
+	$("#pann, #pans, #pane, #panw, #zoomin, #zoomout, #subgraph, #reset, #searchcomponents, #componentenrichment, #export, #exportoptions").button();
 	
 	$("#layoutselect").change( function(){
 		$('#network').cytoscape('get').layout(getNetworkLayout()); });
@@ -94,47 +94,71 @@ $(function(){
 		$("#searchresults").hide();
 	});
 	
+	function setAdditionalExportOptions(){
+		$("#export_additionaloptions").children().hide();
+		if($("#export_type").val() == 4){
+			$("#exportshortestpathoptions").show();
+		}
+	}
 	
-	$("#exportnetwork").click(function(){
-		$("#exportnetwork_network").val(ccidata.network);
-		$("#exportnetwork_minsize").val(ccidata.minsize);
-		$("#exportnetwork_maxsize").val(ccidata.maxsize);
-
-		$("#exportnetworkform").submit();
-	});
-	
-	
-	$("#exportminhopdialog").dialog({
+	$("#export_additionaloptions").children().hide();
+	$("#exportdialog").dialog({
 		autoOpen: false,
 		modal: true,
 		width: 'auto',
 		height: 'auto',
 		open: function(){
-			$("#minhoptarget").empty();
-			$("#minhoptarget").append('<option value="promoter">Gene Promoters</option>');
-			$("#minhoptarget").append($(".superimposedsets").first().children().slice(1).clone());
-
+			$("#exportspatarget").empty();
+			$("#exportspatarget").append('<option value="promoter">Promoters</option>');
+			$("#exportspatarget").append($(".superimposedsets").first().children().slice(1).clone());
+			setAdditionalExportOptions();
 		}
 	});
 	
-	$("#exportminhopdialog").parent().find(".ui-dialog-titlebar-close").css("display", "inline");
+	$("#export_type").change(function(){
+		setAdditionalExportOptions();
+	});
+	
+	$("#exportdialog").parent().find(".ui-dialog-titlebar-close").css("display", "inline");
 
-	$("#exportmhdialog").click(function(){
-		$("#exportminhopdialog").dialog("open");
+	$("#exportoptions").click(function(){$("#exportdialog").dialog("open")});
+	
+	$("#export").click(function(){
+		var type = $("#export_type").val();
+		
+		$("#export_network").val(ccidata.network);
+		$("#export_minsize").val(ccidata.minsize);
+		$("#export_maxsize").val(ccidata.maxsize);
+		$("#export_genes").val(JSON.stringify(ccidata.genes));
+		$("#export_diseases").val(JSON.stringify(ccidata.diseases));
+		$("#export_regions").val(JSON.stringify(ccidata.regions));
+		$("#export_snps").val(JSON.stringify(ccidata.snps));
+		
+		if(type == 1){
+			//Network GML
+			$("#exportform").prop("action", "exportnetwork");
+			$("#exportform").submit();
+		}
+		else if(type == 2){
+			//Nodes
+			$("#exportform").prop("action", "nodeannotations");
+			$("#exportform").submit();
+		}
+		else if(type == 3){
+			//Components
+			$("#exportform").prop("action", "exportca");
+			$("#exportform").submit();
+		}
+		else if(type == 4){
+			//SPA
+			$("#exportform").prop("action", "exportminhop");
+			$("#exportform").submit();
+		}
+		
 	});
 	
 	
-	$("#exportmh").click(function(){
-		$("#exportmh_network").val(ccidata.network);
-		$("#exportmh_genes").val(JSON.stringify(ccidata.genes));
-		$("#exportmh_diseases").val(JSON.stringify(ccidata.diseases));
-		$("#exportmh_regions").val(JSON.stringify(ccidata.regions));
-		$("#exportmh_snps").val(JSON.stringify(ccidata.snps));
-		$("#exportmh_minsize").val(ccidata.minsize);
-		$("#exportmh_maxsize").val(ccidata.maxsize);
-		$("#exportmhform").submit();
-		$("#exportminhopdialog").dialog("close");
-	});
+
 	
 	$("#loadsph").click(function(){
 		$.ajax({
@@ -158,25 +182,7 @@ $(function(){
 			});
 	});
 	
-	$("#exportca").click(function(){
-		$("#exportca_network").val(ccidata.network);
-		$("#exportca_genes").val(JSON.stringify(ccidata.genes));
-		$("#exportca_diseases").val(JSON.stringify(ccidata.diseases));
-		$("#exportca_regions").val(JSON.stringify(ccidata.regions));
-		$("#exportca_snps").val(JSON.stringify(ccidata.snps));
-		$("#exportca_minsize").val(ccidata.minsize);
-		$("#exportca_maxsize").val(ccidata.maxsize);
-		$("#exportcaform").submit();
-	});
-	
-	$("#exportna").click(function(){
-		$("#exportna_network").val(ccidata.network);
-		$("#exportna_genes").val(JSON.stringify(ccidata.genes));
-		$("#exportna_diseases").val(JSON.stringify(ccidata.diseases));
-		$("#exportna_regions").val(JSON.stringify(ccidata.regions));
-		$("#exportna_snps").val(JSON.stringify(ccidata.snps));
-		$("#exportnaform").submit();
-	});
+
 	
 	$("#gotoccb").button();
 	$("#gotoccb").click(function(){
