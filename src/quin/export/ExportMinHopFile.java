@@ -20,35 +20,21 @@ import shortestpath.ShortestPathAnalysis;
 public class ExportMinHopFile {
 	
 	
-	public void createMinHopFile(Connection conn, long fid, Integer[] indices, Integer tindex, String f1, String f2, String zf, int min, int max) throws SQLException{
+	public void createMinHopFile(Connection conn, long fid, Integer[] indices, Integer[] tindex, String f1, String f2, String zf, int min, int max, boolean sp, boolean tp, String genome, int upstream, int downstream) throws SQLException{
 		ShortestPathAnalysis spa  = new ShortestPathAnalysis(conn, fid);
 		
 		TreeMap<Integer, Node> nodes = spa.getNodes();
 
-		String targetlabel;
-		String targetchrlabel = "Target Chr";
-		String targetslabel = "Target Start";
-		String targetelabel = "Target End";
-		if(tindex == null){
-			targetlabel = "Promoter";
-		}
-		else{
-			Util u = new Util();
-			targetlabel = u.getDataset(conn, fid, tindex)+" Term";
-		}
-
-		
-		
 		File f = new File(f1);
 		BufferedWriter bw;
 		try {
 			bw = new BufferedWriter(new FileWriter(f));
-			bw.write("Dataset\tTerm\tTerm Chr\tTerm Start\tTerm End\tTerm Nearest TSS\tTerm Nearest TSS Distance\tTarget Node\tHop Count\tDistance\t"+targetlabel+"\t"+targetchrlabel+"\t"+targetslabel+"\t"+targetelabel+"\tTarget Nearest TSS\tTarget Nearest TSS Distance\tAVG PET\tMin PET\tMax PET\tAVG Interactions\tMin Interactions\tMax Interactions\tTotal Nodes In Component\tTotal Edges In Component\tPath\n");
+			bw.write("Dataset\tSource Term\tSource Chr\tSource Start\tSource End\tSource Nearest TSS\tSource Nearest TSS Distance\tHop Count\tDistance\tTarget Dataset\tTarget Term\tTarget Chr\tTarget Start\tTarget End\tTarget Nearest TSS\tTarget Nearest TSS Distance\tAVG PET/Read Count\tMin PET/Read Count\tMax PET/Read Count\tAVG Interactions\tMin Interactions\tMax Interactions\tTotal Nodes In Component\tTotal Edges In Component\tPath\n");
 			
-			ShortestPath[] paths = spa.getShortestPaths(conn, fid, indices, tindex, min, max);
+			ShortestPath[] paths = spa.getShortestPaths(conn, fid, indices, tindex, min, max, sp, tp, genome, upstream, downstream);
 			for(int i = 0; i < paths.length; i++){
 				ShortestPath path = paths[i];
-				bw.write(path.getDataset()+"\t"+path.getTerm()+"\t"+path.getTermChr()+"\t"+path.getTermStart()+"\t"+path.getTermEnd()+"\t"+path.getTermNearestTSS()+"\t"+path.getTermTSSDistance()+"\t"+path.getTargetNodeId()+"\t"+path.getMinimumEdgesToTarget()+"\t"+path.getGenomicDistance()+"\t"+path.getTargetTerm()+"\t"+path.getTargetChr()+"\t"+path.getTargetStart()+"\t"+path.getTargetEnd()+"\t"+path.getTargetNearestTSS()+"\t"+path.getTargetTSSDistance()+"\t"+path.getAVGScore()+"\t"+path.getMinScore()+"\t"+path.getMaxScore()+"\t"+path.getAVGInteractions()+"\t"+path.getMinInteractions()+"\t"+path.getMaxInteractions()+"\t"+path.getComponentNodeCount()+"\t"+path.getComponentEdgeCount()+"\t"+path.getPath()+"\n");
+				bw.write(path.getDataset()+"\t"+path.getTerm()+"\t"+path.getTermChr()+"\t"+path.getTermStart()+"\t"+path.getTermEnd()+"\t"+path.getTermNearestTSS()+"\t"+path.getTermTSSDistance()+"\t"+path.getMinimumEdgesToTarget()+"\t"+path.getGenomicDistance()+"\t"+path.getTargetDataset()+"\t"+path.getTargetTerm()+"\t"+path.getTargetChr()+"\t"+path.getTargetStart()+"\t"+path.getTargetEnd()+"\t"+path.getTargetNearestTSS()+"\t"+path.getTargetTSSDistance()+"\t"+path.getAVGScore()+"\t"+path.getMinScore()+"\t"+path.getMaxScore()+"\t"+path.getAVGInteractions()+"\t"+path.getMinInteractions()+"\t"+path.getMaxInteractions()+"\t"+path.getComponentNodeCount()+"\t"+path.getComponentEdgeCount()+"\t"+path.getPath()+"\n");
 			}
 			
 			bw.flush();
@@ -84,7 +70,6 @@ public class ExportMinHopFile {
 			zos.close();
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		f.delete();

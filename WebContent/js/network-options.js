@@ -94,30 +94,15 @@ $(function(){
 		$("#searchresults").hide();
 	});
 	
-	function setAdditionalExportOptions(){
-		$("#export_additionaloptions").children().hide();
-		if($("#export_type").val() == 4){
-			$("#exportshortestpathoptions").show();
-		}
-	}
 	
 	$("#export_additionaloptions").children().hide();
 	$("#exportdialog").dialog({
 		autoOpen: false,
 		modal: true,
 		width: 'auto',
-		height: 'auto',
-		open: function(){
-			$("#exportspatarget").empty();
-			$("#exportspatarget").append('<option value="promoter">Promoters</option>');
-			$("#exportspatarget").append($(".superimposedsets").first().children().slice(1).clone());
-			setAdditionalExportOptions();
-		}
+		height: 'auto'
 	});
 	
-	$("#export_type").change(function(){
-		setAdditionalExportOptions();
-	});
 	
 	$("#exportdialog").parent().find(".ui-dialog-titlebar-close").css("display", "inline");
 
@@ -157,12 +142,30 @@ $(function(){
 		
 	});
 	
+	$("#tdexport").click(function(){
+		var ccidata = getTDCCIDData()
+		$("#tdexport_network").val(ccidata.network);
+		$("#tdexport_minsize").val(ccidata.minsize);
+		$("#tdexport_maxsize").val(ccidata.maxsize);
+		$("#tdexport_s_genes").val(JSON.stringify(ccidata.s_genes));
+		$("#tdexport_s_diseases").val(JSON.stringify(ccidata.s_diseases));
+		$("#tdexport_s_regions").val(JSON.stringify(ccidata.s_regions));
+		$("#tdexport_s_snps").val(JSON.stringify(ccidata.s_snps));
+		$("#tdexport_sp").val(ccidata.sp);
+		$("#tdexport_t_genes").val(JSON.stringify(ccidata.t_genes));
+		$("#tdexport_t_diseases").val(JSON.stringify(ccidata.t_diseases));
+		$("#tdexport_t_regions").val(JSON.stringify(ccidata.t_regions));
+		$("#tdexport_t_snps").val(JSON.stringify(ccidata.t_snps));
+		$("#tdexport_tp").val(ccidata.tp);
+		$("#tdexportform").submit();
+	});
+	
 	
 
 	
-	$("#loadsph").click(function(){
+	$("#loadaieh").click(function(){
 		$.ajax({
-			url : "shortestpathheatmap",
+			url : "aieheatmap",
 			data: {
 				network: ccidata.network,
 				genes: ccidata.genes,

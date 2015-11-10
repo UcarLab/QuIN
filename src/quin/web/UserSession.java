@@ -105,4 +105,17 @@ public class UserSession {
 		return new BigInteger(130, sr).toString(32);
 	}
 	
+	public boolean sessionExists(Connection conn, Long uid, String phrase) throws SQLException{
+		String sql = "SELECT count(*) FROM usersessions.Sessions WHERE UID=? AND phrase=?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setLong(1, uid);
+		ps.setString(2, phrase);
+		ResultSet rs = ps.executeQuery();
+		rs.next();
+		int count = rs.getInt(1);
+		rs.close();
+		ps.close();
+		return (count > 0);
+	}
+	
 }

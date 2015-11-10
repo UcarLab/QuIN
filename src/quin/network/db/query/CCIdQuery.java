@@ -37,7 +37,6 @@ public class CCIdQuery {
 			if(include){
 				String subtable = "(SELECT DISTINCT cc.id AS id, cc.nodecount AS nodecount, cc.edgecount AS edgecount, (SELECT count(DISTINCT i.nid) FROM "+nodetable+" AS n, "+indextable+" AS i WHERE i.nid=n.id AND i.iid IN("+vals+") AND cc.nodecount <= ? AND cc.nodecount >= ? AND cc.id = n.ccid) AS acount FROM "+cctable+" AS cc)";
 				sql = "SELECT cc.id FROM "+subtable+" AS cc ORDER BY "+orderby+" DESC";
-				System.out.println(sql);
 			}
 			else{
 				sql = "SELECT DISTINCT cc.id FROM "+nodetable+" AS n, "+cctable+" AS cc, "+indextable+" AS i WHERE i.nid=n.id AND i.iid IN("+vals+") AND cc.nodecount <= ? AND cc.nodecount >= ? AND cc.id = n.ccid GROUP BY cc.id ORDER BY "+orderby+" DESC";
@@ -70,5 +69,37 @@ public class CCIdQuery {
 		return l.toArray(new Integer[0]);
 	}
 	
+	
+	
+	public Integer[] getPromoterCCIds(Connection conn, String schema,  long fid, int sortby, int maxsize, int minsize, boolean include, int upstream, int downstream) throws SQLException{
+//		String cctable = schema+".ConnectedComponents_"+fid;
+//		String nodetable = schema+".Nodes_"+fid;
+//		String indextable = schema+".SIIndex_"+fid;
+
+		PreparedStatement ps;
+
+		String orderby = "nodecount";
+		if(sortby == 2){
+			orderby = "edgecount";
+		}
+	
+		String sql = "SELECT DISTINCT n.ccid FROM chiapet.Nodes_"+fid+" AS n, ucsc.hg19 AS g, chiapet.ConnectedComponents_"+fid+" as cc WHERE cc.nodecount <= ? AND cc.nodecount >= ? AND cc.id = n.ccid AND "
+				+ "g.chrom=n.chr AND "
+				+"((n.start <= g.txstart+"+upstream+" AND g.txstart-"+downstream+" <= n.end AND g.strand='+')"
+				+"|| (n.start <= g.txend+"+downstream+" AND g.txend-"+upstream+" <= n.end AND g.strand='-'))  ORDER BY "+orderby+" DESC";
+		
+		ps = conn.prepareStatement(sql);
+		
+		ps.setInt(1, maxsize);
+		ps.setInt(2, minsize);
+
+		ResultSet rs = ps.executeQuery();
+		LinkedList<Integer> l = new LinkedList<Integer>();
+		while(rs.next()){
+			l.add(rs.getInt(1));
+		}
+		
+		return l.toArray(new Integer[0]);
+	}
 	
 }

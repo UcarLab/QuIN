@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Enumeration;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,14 +13,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REngineException;
 
-import quin.network.analysis.ShortestPathHeatmap;
+import quin.network.analysis.AnnotationInteractionEnrichment;
 import quin.web.UserSession;
 
 import com.google.gson.Gson;
 
 import db.SQLConnectionFactory;
 
-public class ShortestPathHeatmapServlet extends HttpServlet{
+public class AIEHeatmapServlet extends HttpServlet{
 	
 	/**
 	 * 
@@ -107,9 +106,9 @@ public class ShortestPathHeatmapServlet extends HttpServlet{
 		catch(NumberFormatException e){ }
 		
 		byte[] heatmap = new byte[0];
-		ShortestPathHeatmap sph = new ShortestPathHeatmap();
+		AnnotationInteractionEnrichment sph = new AnnotationInteractionEnrichment();
 		try {
-			heatmap = sph.generateHeatmap(conn, fid, sids, minsize, maxsize, new int[]{1});
+			heatmap = sph.generateHeatmap(conn, fid, sids, minsize, maxsize);
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		} catch (REngineException e) {

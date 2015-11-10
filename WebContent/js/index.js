@@ -7,10 +7,10 @@ var colors = ["#0099ff", "#ff0000", "#00cc00", "#ffcc00", "#663399",
 			"#cccc33", "#0000ff", "#ff3366", "#33ff00", "#cc9900", "#cc66ff",
 			"#ffff99" ];
 var colorindex = [];
-var datasetindex = 1;
+var pcolorindex = [];
 
 $(function(){	
-	$(".ureset, .uupload, #u_progressclose, #b_progressclose, #resetbuild, #build, #resetview, #view, #merge, #resetmerge, #loaddata, #exportca, #exportna").button();
+	$(".ureset, .uupload, #u_progressclose, #b_progressclose, #resetbuild, #build, #resetview, #view, #merge, #resetmerge, #loaddata, #exportca, #exportna, #tdexport, #td_loaddata, #td_view").button();
 	
 	
 	$("#uploadchiapet").click(function(){
@@ -146,7 +146,11 @@ $(function(){
 		viewNetwork();
 	});
 	
-	$("#loaddata").click(function(){
+	$("#td_view").click(function(){
+		viewTDNetwork();
+	});
+	
+	$("#loaddata, #td_loaddata").click(function(){
 		updateMenus();
 	});
 	
@@ -204,7 +208,7 @@ $(function(){
 	 
 	 
 	 
-	 $(".superimposedcolor").spectrum({
+	 $(".superimposedcolor, .tdt_superimposedcolor, .tds_superimposedcolor").spectrum({
 		    color: colors[0],
 		    showInput: true,
 		    className: "full-spectrum",
@@ -229,6 +233,8 @@ $(function(){
 		        
 		    }
 		});
+	 
+	 $(".tdt_superimposedcolor").spectrum("set", colors[1]);
 });
 
 function initProgress(uidialog, uiclose, uibar, uibarlabel, message){
@@ -363,6 +369,7 @@ function viewNetwork(){
 	var sd = [];
 	var sc = [];
 	
+	$("#apptabs").tabs("option", "disabled", [] );
 	$("#network").empty().append("Loading...");
 
 	$("#ns_name").empty().append(name);
@@ -390,6 +397,7 @@ function viewNetwork(){
 	var dci = [];
 	var rci = [];
 	var sci = [];
+	var pci = [];
 	
 	for(var i = 0; i < sd.length; i++){
 		var cur = sd[i].split("_");
@@ -412,6 +420,9 @@ function viewNetwork(){
 			snps.push(val);
 			sci.push(sc[i]);
 		}
+		else if(type == "P"){
+			pci.push(sc[i])
+		}
 	}
 	
 	
@@ -429,6 +440,7 @@ function viewNetwork(){
 		ci.push(sci[i]);
 	}
 	colorindex = ci;
+	pcolorindex = pci;
 	
 	var idata = {
 		network: network,
@@ -475,6 +487,213 @@ function viewNetwork(){
 
 		}).error(function(req, status, error) {
 			//TODO
+		});
+	
+}
+
+function getTDCCIDData(){
+	var network  = $("#td_network").val();
+	var name  = $("#td_network :selected").text();
+
+	$("#apptabs").tabs("option", "active", [ 0 ] );
+	$("#apptabs").tabs("option", "disabled", [ 2, 3 ] );
+	
+	$("#network").empty().append("Loading...");
+
+	$("#ns_name").empty().append(name);
+	$("#ns_comp").empty().append("&nbsp;");
+	$("#ns_node").empty().append("&nbsp;");
+	$("#ns_edge").empty().append("&nbsp;");
+	$("#ns_avgpet").empty().append("&nbsp;");
+	$("#ns_extend").empty().append("&nbsp;");
+	$("#ns_minpet").empty().append("&nbsp;");
+	$("#ns_intra").empty().append("&nbsp;");
+	$("#ns_inter").empty().append("&nbsp;");
+	$("#ns_mincompsize").empty().append("&nbsp;");
+	$("#ns_maxcompsize").empty().append("&nbsp;");
+
+	var s_genes = [];
+	var s_diseases = [];
+	var s_regions = [];
+	var s_snps = [];
+	
+	var t_genes = [];
+	var t_diseases = [];
+	var t_regions = [];
+	var t_snps = [];
+	
+	var genes = [];
+	var diseases = [];
+	var regions = [];
+	var snps = [];
+	var gci = [];
+	var dci = [];
+	var rci = [];
+	var sci = [];
+	var pci = [];
+	
+	var sp = false;
+	var tp = false;
+	
+	var s_sd = [];
+	var s_sc = [];
+	
+	
+	$(".tds_superimposedelement").each(function(){
+		s_sd.push($(this).find(".tds_superimposedsets").val());
+		s_sc.push($(this).find(".tds_superimposedcolor").spectrum("get").toString());
+	});
+	
+
+	for(var i = 0; i < s_sd.length; i++){
+		var cur = s_sd[i].split("_");
+		var type = cur[0];
+		var val = cur[1];
+		
+		if(type == "1"){
+			regions.push(val);
+			s_regions.push(val);
+			rci.push(s_sc[i]);
+		}
+		else if(type == "2"){
+			genes.push(val);
+			s_genes.push(val);
+			gci.push(s_sc[i]);
+		}
+		else if(type == "3"){
+			diseases.push(val);
+			s_diseases.push(val);
+			dci.push(s_sc[i]);
+		}
+		else if(type == "4"){
+			snps.push(val);
+			s_snps.push(val);
+			sci.push(s_sc[i]);
+		}
+		else if(type == "P"){
+			pci.push(s_sc[i])
+			sp = true;
+		}
+	}
+	
+	var t_sd = [];
+	var t_sc = [];
+	$(".tdt_superimposedelement").each(function(){
+		t_sd.push($(this).find(".tdt_superimposedsets").val());
+		t_sc.push($(this).find(".tdt_superimposedcolor").spectrum("get").toString());
+	});
+	
+
+	for(var i = 0; i < t_sd.length; i++){
+		var cur = t_sd[i].split("_");
+		var type = cur[0];
+		var val = cur[1];
+		
+		if(type == "1"){
+			regions.push(val);
+			t_regions.push(val);
+			rci.push(t_sc[i]);
+		}
+		else if(type == "2"){
+			genes.push(val);
+			t_genes.push(val);
+			gci.push(t_sc[i]);
+		}
+		else if(type == "3"){
+			diseases.push(val);
+			t_diseases.push(val);
+			dci.push(t_sc[i]);
+		}
+		else if(type == "4"){
+			snps.push(val);
+			t_snps.push(val);
+			sci.push(t_sc[i]);
+		}
+		else if(type == "P"){
+			tp = true;
+			pci.push(t_sc[i])
+		}
+	}
+	
+	
+	
+	
+	var ci = [];
+	for(var i = 0; i < rci.length; i++){
+		ci.push(rci[i]);
+	}
+	for(var i = 0; i < gci.length; i++){
+		ci.push(gci[i]);
+	}
+	for(var i = 0; i < dci.length; i++){
+		ci.push(dci[i]);
+	}
+	for(var i = 0; i < sci.length; i++){
+		ci.push(sci[i]);
+	}
+	colorindex = ci;
+	pcolorindex = pci;
+	
+	var idata = {
+		network: network,
+		genes: genes,
+		diseases: diseases,
+		regions: regions,
+		snps: snps,
+		s_genes: s_genes,
+		s_diseases: s_diseases,
+		s_regions: s_regions,
+		s_snps: s_snps,
+		t_genes: t_genes,
+		t_diseases: t_diseases,
+		t_regions: t_regions,
+		t_snps: t_snps,
+		sp: sp.toString(),
+		tp: tp.toString(),
+		traitsrc: $("#traitdb").val(),
+		minsize: $("#td_size1").val(),
+		maxsize: $("#td_size2").val(),
+		annotatedonly: "TRUE",
+		sortby: 1,
+		colorindex: ci,
+		promoters: (pci.length > 0).toString() // TEMPORARY, just to allow viewing of promoter targets in target discovery
+	}
+	
+	return idata;
+}
+
+
+function viewTDNetwork(){
+	var idata = getTDCCIDData();
+	$.ajax({
+		url : "gettdccids",
+		data: idata,
+		dataType : "json",
+		cache: false,
+		type : "post",
+		}).success(function(data) {
+			setCCIds(data, idata);
+			setNetworkInfo(idata);
+		}).error(function(req, status, error) {
+		});
+	
+	$.ajax({
+		url : "networkstatistics",
+		data: { 
+			network: network,
+			binsize: 500,
+			density: "true",
+			minsize: $("#td_size1").val(),
+			maxsize: $("#td_size2").val()
+		},
+		dataType : "json",
+		cache: false,
+		type : "post",
+		}).success(function(data) {
+			$("#nshistogram").empty().append('<img src="data:image/png;base64,'+data.nodespan+'">');
+			$("#nshistogram").append('<img src="data:image/png;base64,'+data.interactionsep+'">');
+
+		}).error(function(req, status, error) {
 		});
 	
 }
@@ -567,20 +786,38 @@ function updateMenus(){
 	}).success(function(data){
 		$("#b_dataset").empty();
 		$("#e_chiapet").empty();
+		$("#td_network").empty();
 		$("#m_n1").empty();
 		$("#m_n2").empty();
 		updateSelect("#b_dataset", data.pchiapetdata, "Available Data");
 		updateSelect("#e_chiapet", data.pnetworks, "Available Networks");
+		updateSelect("#td_network", data.pnetworks, "Available Networks");
 		updateSelect("#m_n1", data.pnetworks, "Available Networks");
 		updateSelect("#m_n2", data.pnetworks, "Available Networks");
 
 		updateSelect("#b_dataset", data.chiapetdata, "Uploaded Data");
 		updateSelect("#e_chiapet", data.networks, "Uploaded Networks");
+		updateSelect("#td_network", data.networks, "Uploaded Networks");
 		updateSelect("#m_n1", data.networks, "Uploaded Networks");
 		updateSelect("#m_n2", data.networks, "Uploaded Networks");
 
-		updateSuperImposeSelect(".superimposedsets", data);
+		updateSuperImposeSelect(".superimposedsets", data, [["-1", "None"]]);
+		updateSuperImposeSelect(".tds_superimposedsets", data, [["P", "Promoters (2KB from TSS)"]]);
+		updateSuperImposeSelect(".tdt_superimposedsets", data, [["P", "Promoters (2KB from TSS)"]]);
+
 		updateDatasetLabels(data);
+	});
+	
+	$.ajax({
+		url: 'getsessionurl',
+		cache: false
+	}).success(function(data){
+		$("#sessionlink").empty()
+		if(data != ""){
+			var url = window.location.href;
+			url = url.slice(0,url.lastIndexOf("/"));
+			$("#sessionlink").append('Link to this session (This link will allow editing of this session): <input type="text" style="width: 200px" value="'+url+data+'"/>')
+		}
 	});
 }
 
@@ -603,9 +840,14 @@ function addSuperImposeSelectGroup(ui, grouplabel, data, dataprefix){
 	$(ui).append(html);
 }
 
-function updateSuperImposeSelect(ui, data){
+function updateSuperImposeSelect(ui, data, initvals){
 	$(ui).empty();
-	$(ui).append('<option value="-1">None</option>');
+	if(initvals instanceof Array){
+		for(var i = 0; i < initvals.length; i ++){
+			$(ui).append('<option value="'+initvals[i][0]+'">'+initvals[i][1]+'</option>');
+		}
+	}
+
 	addSuperImposeSelectGroup(ui, "Preloaded Region Lists", data.pregionlists, "1_");
 	addSuperImposeSelectGroup(ui, "Uploaded Region Lists", data.regionlists, "1_");
 	addSuperImposeSelectGroup(ui, "Preloaded Gene Lists", data.pgenelists, "2_");
@@ -670,14 +912,15 @@ function updateDatasetLabels(data){
 	}
 }
 
-function addSuperImposedSet(){
-	var elements = $(".superimposedelement");
+
+function addAnnotationSet(divid, elementclass, colordivclass, colorclass, coloroffset, initvals){
+	var elements = $("."+elementclass);
 	var clone = $(elements).first().clone();
-	var cdiv = clone.find(".superimposedcolordiv");
-	$(cdiv).empty().append("<input type=\"text\" class=\"superimposedcolor\" />");
-	var cchooser = $(cdiv).find(".superimposedcolor");
+	var cdiv = clone.find("."+colordivclass);
+	$(cdiv).empty().append("<input type=\"text\" class=\""+colorclass+"\" />");
+	var cchooser = $(cdiv).find("."+colorclass);
 	$(cchooser).spectrum({
-	    color: colors[(datasetindex++)%colors.length],
+	    color: colors[coloroffset%colors.length],
 	    showInput: true,
 	    className: "full-spectrum",
 	    showInitial: true,
@@ -701,6 +944,29 @@ function addSuperImposedSet(){
 	        
 	    }
 	});
-	$("#superimposedsets").append(clone);
+	if(initvals instanceof Array){
+		for(var i = 0; i < initvals.length; i ++){
+			$(clone).find(".uiselect").prepend('<option value="'+initvals[i][0]+'">'+initvals[i][1]+'</option>');
+		}
+	}
+	$(clone).find(".uiselect").prop('selectedIndex',0);
+	$("#"+divid).append(clone);
 }
+
+function addSuperImposedSet(){
+	addAnnotationSet("superimposedsets", "superimposedelement", "superimposedcolordiv", "superimposedcolor", $(".superimposedelement").length);
+}
+
+function TDColorOffset(){
+	return $(".tds_superimposedelement").length+$(".tdt_superimposedelement").length;
+}
+
+function addTDSource(){
+	addAnnotationSet("tds_superimposedsets", "tds_superimposedelement", "tds_superimposedcolordiv", "tds_superimposedcolor", TDColorOffset(), [["-1", "None"]]);
+}
+
+function addTDTarget(){
+	addAnnotationSet("tdt_superimposedsets", "tdt_superimposedelement", "tdt_superimposedcolordiv", "tdt_superimposedcolor", TDColorOffset(), [["-1", "None"]]);
+}
+
 

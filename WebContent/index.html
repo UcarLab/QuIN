@@ -333,6 +333,86 @@
 								</form>
 							</div>
 						</div>
+						<h3>Target Discovery</h3>
+						<div>
+							<div class="description">
+									View components with paths from source annotations to target annotations or export all shortests paths from the source annotations to the target annotations.
+							</div>
+							<br />
+							<div>
+								<form id="td_form" onsubmit="return false;">
+									<div class="inputelements">
+										<div class="inputname">Network:</div>
+										<div class="inputform">
+											<select name="td_network" id="td_network" class="uiselect">
+												<option value="-1">None</option>					
+											</select>
+										</div>
+									</div>
+									<div class="inputelement">
+										<div class="inputname">Component Size:</div>
+										<div class="inputform">Min: <input type="text" name="td_size1" id="td_size1" value="2" size="4"/> Max:<input type="text" name="td_size2" id="td_size2" value="" size="4"/></div>
+									</div>
+									
+									<div class="inputelements">
+										<div class="inputname">Source Annotations:</div>
+										<div class="inputform">
+											<div id="tds_superimposedsets">
+												<div class="tds_superimposedelement" style="display: inline-block;">
+													<div style="width: 80%; float: left;">
+														<select class="tds_superimposedsets uiselect" style="width:100%;">
+															<option value="-1">None</option>										
+														</select>
+													</div>
+													<div style="width: 20%; display: block; text-align: right; float: right;" class="tds_superimposedcolordiv">
+														<input type="text" class="tds_superimposedcolor" />
+													</div>
+												</div>
+											</div>
+											<div>
+												<a href="javascript:addTDSource()" style="display: block; text-align: right;">Add Source</a>
+											</div>																		
+										</div>
+										
+										<div class="inputname">Target Annotations:</div>
+										<div class="inputform">
+											<div id="tdt_superimposedsets">
+												<div class="tdt_superimposedelement" style="display: inline-block;">
+													<div style="width: 80%; float: left;">
+														<select class="tdt_superimposedsets uiselect" style="width:100%;">
+															<option value="-1">None</option>										
+														</select>
+													</div>
+													<div style="width: 20%; display: block; text-align: right; float: right;" class="tdt_superimposedcolordiv">
+														<input type="text" class="tdt_superimposedcolor" />
+													</div>
+												</div>
+											</div>
+											<div>
+												<a href="javascript:addTDTarget()" style="display: block; text-align: right;">Add Target</a>
+											</div>																		
+										</div>
+									</div>
+									<div class="buttondiv"><button id="td_loaddata">Reload Data</button>&nbsp;<button id="td_view">View</button></div>
+								</form>
+								<form method="post" action="exportminhop" id="tdexportform">
+									<input type="hidden" name="network" id="tdexport_network" value="-1">
+									<input type="hidden" name="s_genes" id="tdexport_s_genes" value="-1">
+									<input type="hidden" name="s_diseases" id="tdexport_s_diseases" value="-1">
+									<input type="hidden" name="s_regions" id="tdexport_s_regions" value="-1">
+									<input type="hidden" name="s_snps" id="tdexport_s_snps" value="-1">
+									<input type="hidden" name="sp" id="tdexport_sp" value="-1">	
+									<input type="hidden" name="t_genes" id="tdexport_t_genes" value="-1">
+									<input type="hidden" name="t_diseases" id="tdexport_t_diseases" value="-1">
+									<input type="hidden" name="t_regions" id="tdexport_t_regions" value="-1">
+									<input type="hidden" name="t_snps" id="tdexport_t_snps" value="-1">
+									<input type="hidden" name="tp" id="tdexport_tp" value="-1">	
+									<input type="hidden" name="minsize" id="tdexport_minsize" value="">
+									<input type="hidden" name="maxsize" id="tdexport_maxsize" value="">
+									<div class="buttondiv"><button id="tdexport">Export</button></div>
+								</form>
+							</div>
+						</div>
 					</div>
 					<br />
 					<div><span style="font-family: arial; font-size: 14px; color: #000; font-weight: bold;">Tutorial:</span> <a href="tutorial.docx" style="font-family: arial; font-size: 14px; color: #000;">DOCX</a>/<a href="tutorial.pdf" style="font-family: arial; font-size: 14px; color: #000;">PDF</a></div>
@@ -385,7 +465,7 @@
 							<li><a href="#tabs-1">Network Visualization</a></li>
 							<li><a href="#tabs-2">Network Summary</a></li>
 							<li><a href="#tabs-3">Centrality Measures</a></li>
-							<!-- <li><a href="#tabs-4">Shortest Path Analysis</a></li> -->
+							<li><a href="#tabs-4">Annotation Interaction Enrichment</a></li>
 						</ul>
 						<div id="tabs-1">
 							<div id="networkwrapper">
@@ -510,6 +590,7 @@
 											<div class="ui-state-active networkmenu-header">Legend</div>
 											<div id="legendcontainer" class="np2content ui-corner-bottom"><div id="legend">&nbsp;</div></div>
 										</div>
+										<div id="sessionlink"></div>
 									</div>
 								</div>
 							</div>
@@ -597,14 +678,13 @@
 								<div id="betweennessboxplot"></div>							
 							</div>
 						</div>
-						<!-- <div id="tabs-4">
+						<div id="tabs-4">
 							<div>
-								<button id="loadsph">Generate Heatmap</button>
+								<button id="loadaieh">Generate Heatmap</button>
 							</div>
 							<br />
 							<div id="sph">&nbsp;</div>
 						</div>
-						-->
 					</div>
 				</div>
 			</div>
@@ -736,21 +816,7 @@
 						<option value="1">Network (.gml)</option>
 						<option value="2">Node Annotations (.txt)</option>
 						<option value="3">Component Annotations (.txt)</option>
-						<option value="4">Shortest Path Analysis (.zip)</option>
 					</select>
-					<div id="export_additionaloptions">
-						<div id="exportshortestpathoptions">
-							<div>
-								<div style="font-weight: bold;">Target:</div> 
-								<div>Note: The source nodes are determined by the annotations on the network.  If the network is not annotated, the shortest path analysis will not return any results.</div>
-							</div>
-							<div>
-							<select  id="exportspatarget" name="target">
-								<option value="promoter">Promoters</option>
-							</select>
-							</div>
-						</div>
-					</div>
 					<br />
 					<div style="text-align: right;">
 						<button id="export">Export</button>

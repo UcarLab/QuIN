@@ -33,14 +33,14 @@ public class CCQuery {
 			nodeindex.put(nodes[i].getId(), nodes[i]);
 		}
 		
-		String vals = "";
+		String 	vals = "it.iid IN(-1";
 		if(siids.length > 0){
-			vals = "it.iid IN(?";
-			for(int i = 1; i < siids.length; i++){
+			for(int i = 0; i < siids.length; i++){
 				vals += ",?";
 			}
-			vals += ") AND";
 		}
+		vals += ") AND";
+
 		
 		String sql = "SELECT DISTINCT n.id, il.dtype, il.did FROM TMP_nodes AS n, "+iltable+" AS il, "+itable+" AS it WHERE "+vals+" n.id=it.nid AND il.id=it.iid";
 		PreparedStatement ps = conn.prepareStatement(sql);

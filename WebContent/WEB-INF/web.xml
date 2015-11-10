@@ -71,6 +71,11 @@
   </servlet>
   
   <servlet>
+    <servlet-name>gettdccids</servlet-name>
+    <servlet-class>quin.web.servlets.GetTDCCIdsServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
     <servlet-name>getcc</servlet-name>
     <servlet-class>quin.web.servlets.GetCCServlet</servlet-class>
   </servlet>
@@ -136,8 +141,8 @@
   </servlet>
   
   <servlet>
-    <servlet-name>shortestpathheatmap</servlet-name>
-    <servlet-class>quin.web.servlets.ShortestPathHeatmapServlet</servlet-class>
+    <servlet-name>aieheatmap</servlet-name>
+    <servlet-class>quin.web.servlets.AIEHeatmapServlet</servlet-class>
   </servlet>
   
   <servlet>
@@ -148,6 +153,16 @@
   <servlet>
     <servlet-name>importnetwork</servlet-name>
     <servlet-class>quin.web.servlets.ImportNetworkServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>setsession</servlet-name>
+    <servlet-class>quin.web.servlets.SetSession</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>getsessionurl</servlet-name>
+    <servlet-class>quin.web.servlets.GetSessionURL</servlet-class>
   </servlet>
   
   <servlet-mapping>
@@ -193,6 +208,11 @@
   <servlet-mapping>
     <servlet-name>getccids</servlet-name>
     <url-pattern>/getccids</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>gettdccids</servlet-name>
+    <url-pattern>/gettdccids</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
@@ -261,8 +281,8 @@
   </servlet-mapping>
   
   <servlet-mapping>
-    <servlet-name>shortestpathheatmap</servlet-name>
-    <url-pattern>/shortestpathheatmap</url-pattern>
+    <servlet-name>aieheatmap</servlet-name>
+    <url-pattern>/aieheatmap</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
@@ -273,6 +293,16 @@
   <servlet-mapping>
     <servlet-name>importnetwork</servlet-name>
     <url-pattern>/importnetwork</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>getsessionurl</servlet-name>
+    <url-pattern>/getsessionurl</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>setsession</servlet-name>
+    <url-pattern>/setsession</url-pattern>
   </servlet-mapping>
   
   <listener>

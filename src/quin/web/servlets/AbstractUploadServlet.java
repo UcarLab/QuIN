@@ -26,6 +26,7 @@ public abstract class AbstractUploadServlet extends HttpServlet {
 	protected String _sessiontable;
 	protected String[] _validextensions;
 	protected boolean _allowlist = true;
+	protected HttpServletRequest _req;
 
 	@Override 
 	protected void doGet (HttpServletRequest req, HttpServletResponse resp){
@@ -36,6 +37,8 @@ public abstract class AbstractUploadServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
+		_req = req;
+		
 		UserSession us = new UserSession();
 		ServletUtil util = new ServletUtil();
 		Util uu = new Util();

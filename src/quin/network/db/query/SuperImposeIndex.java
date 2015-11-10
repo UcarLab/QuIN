@@ -49,6 +49,25 @@ public class SuperImposeIndex {
 		return rv;
 	}
 	
+	
+	public Integer getAnnotationEdgeCount(Connection conn, long fid, Integer index, int min, int max) throws SQLException{
+		String sql = "SELECT DISTINCT s.nid, n.degree FROM chiapet.SIIndex_"+fid+" AS s, chiapet.Nodes_"+fid+" AS n, chiapet.ConnectedComponents_"+fid+" AS c WHERE s.iid=? AND s.nid=n.id AND n.ccid=c.id AND c.nodecount >= ? AND c.nodecount <= ?";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, index);
+		ps.setInt(2, min);
+		ps.setInt(3, max);
+		
+		ResultSet rs = ps.executeQuery();
+		int rv = 0;
+		while(rs.next()){
+			rv += rs.getInt(2);
+		}
+		rs.close();
+		ps.close();
+		
+		return rv;
+	}
+	
 	private Integer insertIndex(Connection conn, long fid, int dtype, long did, int ext, int genome, int upstream, int downstream, int traitsrc) throws SQLException{
 		String sql = "INSERT INTO SIIndexList_"+fid+" (dtype, did, ext, genome, upstream, downstream, traitsrc) VALUES (?,?,?,?,?,?,?)";
 		PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);

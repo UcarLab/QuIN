@@ -12,12 +12,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import quin.export.ExportMinHopFile;
-import quin.network.db.query.SuperImposeIndex;
-import quin.web.UserSession;
-
 import com.google.gson.Gson;
 
+import quin.export.ExportMinHopFile;
+import quin.web.UserSession;
 import db.SQLConnectionFactory;
 
 public class ExportMinHopServlet extends HttpServlet{
@@ -80,28 +78,16 @@ public class ExportMinHopServlet extends HttpServlet{
 			return;
 		}
 		
-		
-		String starget = req.getParameter("target");
-		Integer target = null;
-		try {
-			target = getTargetId(conn, fid, starget);
-		}
-		catch (SQLException e) {
-			e.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			try {
-				conn.close();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-			}
-			return;
-		}
-		
 		Gson gson = new Gson();
-		String[] genelists = gson.fromJson(req.getParameter("genes"), String[].class);
-		String[] diseaselists = gson.fromJson(req.getParameter("diseases"), String[].class);
-		String[] regionlists = gson.fromJson(req.getParameter("regions"), String[].class);
-		String[] snplists = gson.fromJson(req.getParameter("snps"), String[].class);
+		String[] s_genelists = gson.fromJson(req.getParameter("s_genes"), String[].class);
+		String[] s_diseaselists = gson.fromJson(req.getParameter("s_diseases"), String[].class);
+		String[] s_regionlists = gson.fromJson(req.getParameter("s_regions"), String[].class);
+		String[] s_snplists = gson.fromJson(req.getParameter("s_snps"), String[].class);
+		
+		String[] t_genelists = gson.fromJson(req.getParameter("t_genes"), String[].class);
+		String[] t_diseaselists = gson.fromJson(req.getParameter("t_diseases"), String[].class);
+		String[] t_regionlists = gson.fromJson(req.getParameter("t_regions"), String[].class);
+		String[] t_snplists = gson.fromJson(req.getParameter("t_snps"), String[].class);
 
 		//int ts = Integer.parseInt(traitsrc);
 		int ts = 2; //Just GWAS for now.
@@ -114,10 +100,18 @@ public class ExportMinHopServlet extends HttpServlet{
 		File zf = File.createTempFile("minhopexportz", "_"+uid+"_"+fid, tmpdir);
 
 		SIIndexUtil siu = new SIIndexUtil();
-		Integer[] sids = siu.getIndices(conn, uid, fid, ts, genelists, diseaselists, regionlists, snplists);
-			
+		Integer[] sids = siu.getIndices(conn, uid, fid, ts, s_genelists, s_diseaselists, s_regionlists, s_snplists);
+		Integer[] tids = siu.getIndices(conn, uid, fid, ts, t_genelists, t_diseaselists, t_regionlists, t_snplists);
+
 		String fminsize = req.getParameter("minsize");
 		String fmaxsize = req.getParameter("maxsize");
+		
+		String ssp = req.getParameter("sp");
+		String stp = req.getParameter("tp");
+
+		boolean sp = (ssp != null && ssp.equalsIgnoreCase("true"));
+		boolean tp = (stp != null && stp.equalsIgnoreCase("true"));
+
 
 		int minsize = 1;
 		int maxsize = Integer.MAX_VALUE;
@@ -129,7 +123,7 @@ public class ExportMinHopServlet extends HttpServlet{
 		
 		ExportMinHopFile export = new ExportMinHopFile();
 		try {
-			export.createMinHopFile(conn, fid, sids, target, f1.getAbsolutePath(), f2.getAbsolutePath(), zf.getAbsolutePath(), minsize, maxsize);
+			export.createMinHopFile(conn, fid, sids, tids, f1.getAbsolutePath(), f2.getAbsolutePath(), zf.getAbsolutePath(), minsize, maxsize, sp, tp, "hg19", 2000, 2000);
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
@@ -166,34 +160,5 @@ public class ExportMinHopServlet extends HttpServlet{
 		zf.delete();
 	}
 	
-	private Integer getTargetId(Connection conn, long fid, String target) throws SQLException{
-		String[] split = target.split("_");
-		if(split.length == 2){
-			try{
-				int dtype = Integer.parseInt(split[0]);
-				int id = Integer.parseInt(split[1]);
-				SuperImposeIndex si = new SuperImposeIndex();
-
-				if(dtype == 1){
-					return si.getIndexId(conn, fid, 1, id, 0, 1, -1, -1, -1);
-
-				}
-				else if(dtype == 2){
-					return si.getIndexId(conn, fid, 2, id, -1, 1, 2000, 2000, -1);
-
-				}
-				else if(dtype == 3){
-					return si.getIndexId(conn, fid, 3, id, -1, 1, -1, -1, 2);
-				}
-				else if(dtype == 4){
-					return si.getIndexId(conn, fid, 4, id, -1, 1, -1, -1, 2);
-				}
-
-			}catch(NumberFormatException e){
-				
-			}
-		}
-		return null;
-	}
 	
 }

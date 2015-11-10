@@ -2,16 +2,21 @@ package shortestpath;
 
 public class ShortestPath {
 
-	private String _dataset, _term, _termchr, _termtss, _targetterm, _targetchr, _targettss, _path;
-	private int _termstart, _termend, _termtssd, _targetnode, _minnumedges, _distance, _targetstart, _targetend, _targettssd, _nodecount, _edgecount, _mininter, _maxinter;
+	private String _dataset, _term, _termchr, _termtss, _targetdataset,
+			_targetterm, _targetchr, _targettss, _path;
+	private int _termstart, _termend, _termtssd, _minnumedges, _distance,
+			_targetstart, _targetend, _targettssd, _nodecount, _edgecount,
+			_mininter, _maxinter;
 	private double _avgscore, _minscore, _maxscore, _avginter;
-	
-	
-	public ShortestPath(String dataset, String term, String termchr, int termstart, int termend, String termtss, int termtssd,
-			int targetnode, int minnumedges, int distance, String targetterm, String targetchr, int targetstart, int targetend,
-			String targettss, int targettssd, double avgscore, double minscore, double maxscore, double avginter, int mininter,
-			int maxinter, int nodecount, int edgecount, String path){
-		
+
+	public ShortestPath(String dataset, String term, String termchr,
+			int termstart, int termend, String termtss, int termtssd,
+			int minnumedges, int distance, String targetdataset,
+			String targetterm, String targetchr, int targetstart,
+			int targetend, String targettss, int targettssd, double avgscore,
+			double minscore, double maxscore, double avginter, int mininter,
+			int maxinter, int nodecount, int edgecount, String path) {
+
 		_dataset = dataset;
 		_term = term;
 		_termchr = termchr;
@@ -23,7 +28,7 @@ public class ShortestPath {
 		_termstart = termstart;
 		_termend = termend;
 		_termtssd = termtssd;
-		_targetnode = targetnode;
+		_targetdataset = targetdataset;
 		_minnumedges = minnumedges;
 		_distance = distance;
 		_targetstart = targetstart;
@@ -37,107 +42,107 @@ public class ShortestPath {
 		_minscore = minscore;
 		_maxscore = maxscore;
 		_avginter = avginter;
-		
+
 	}
-	
-	public String getDataset(){
+
+	public String getDataset() {
 		return _dataset;
 	}
-	
-	public String getTerm(){
+
+	public String getTerm() {
 		return _term;
 	}
-	
-	public String getTermChr(){
+
+	public String getTermChr() {
 		return _termchr;
 	}
-	
-	public String getTermNearestTSS(){
+
+	public String getTermNearestTSS() {
 		return _termtss;
 	}
-	
-	public String getTargetTerm(){
+
+	public String getTargetTerm() {
 		return _targetterm;
 	}
-	
-	public String getTargetChr(){
+
+	public String getTargetChr() {
 		return _targetchr;
 	}
-	
-	public String getTargetNearestTSS(){
+
+	public String getTargetNearestTSS() {
 		return _targettss;
 	}
-	
-	public String getPath(){
+
+	public String getPath() {
 		return _path;
 	}
-	
-	public int getTermStart(){
+
+	public int getTermStart() {
 		return _termstart;
 	}
-	
-	public int getTermEnd(){
+
+	public int getTermEnd() {
 		return _termend;
 	}
-	
-	public int getTermTSSDistance(){
+
+	public int getTermTSSDistance() {
 		return _termtssd;
 	}
-	
-	public int getTargetNodeId(){
-		return _targetnode;
+
+	public String getTargetDataset() {
+		return _targetdataset;
 	}
-	
-	public int getMinimumEdgesToTarget(){
+
+	public int getMinimumEdgesToTarget() {
 		return _minnumedges;
 	}
-	
-	public int getGenomicDistance(){
+
+	public int getGenomicDistance() {
 		return _distance;
 	}
-	
-	public int getTargetStart(){
+
+	public int getTargetStart() {
 		return _targetstart;
 	}
-	
-	public int getTargetEnd(){
+
+	public int getTargetEnd() {
 		return _targetend;
 	}
-	
-	public int getTargetTSSDistance(){
+
+	public int getTargetTSSDistance() {
 		return _targettssd;
 	}
-	
-	public int getComponentNodeCount(){
+
+	public int getComponentNodeCount() {
 		return _nodecount;
 	}
-	
-	public int getComponentEdgeCount(){
+
+	public int getComponentEdgeCount() {
 		return _edgecount;
 	}
-	
-	public int getMinInteractions(){
+
+	public int getMinInteractions() {
 		return _mininter;
 	}
-	
-	public int getMaxInteractions(){
+
+	public int getMaxInteractions() {
 		return _maxinter;
 	}
-	
-	public double getAVGScore(){
+
+	public double getAVGScore() {
 		return _avgscore;
 	}
-	
-	public double getMinScore(){
+
+	public double getMinScore() {
 		return _minscore;
 	}
-	
-	public double getMaxScore(){
+
+	public double getMaxScore() {
 		return _maxscore;
 	}
-	
-	public double getAVGInteractions(){
+
+	public double getAVGInteractions() {
 		return _avginter;
 	}
-	
+
 }

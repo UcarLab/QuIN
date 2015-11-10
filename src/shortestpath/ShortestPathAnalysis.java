@@ -30,16 +30,11 @@ public class ShortestPathAnalysis {
 		return _nodes;
 	}
 	
-	public ShortestPath[] getShortestPaths(Connection conn, long fid, Integer[] indices, Integer tindex, int min, int max) throws SQLException{
+	public ShortestPath[] getShortestPaths(Connection conn, long fid, Integer[] indices, Integer[] tindex, int min, int max, boolean sp, boolean tp, String pgenome, int upstream, int downstream) throws SQLException{
 		TreeMap<Integer, Node> nodes = getNodes();
-		NARegion[][] nids = getNodeIds(conn, fid, indices, min, max);
-		ARegion[][] ngm = null;
-		if(tindex == null){
-			ngm = getNodeGeneMapping(conn, fid, "hg19", 2000, 2000);
-		}
-		else{
-			ngm = getNodeTargetMapping(conn, fid, tindex);
-		}
+		NARegion[][] nids = getNodeIds(conn, fid, indices, min, max, (sp ? pgenome : null), upstream, downstream);
+		ARegion[][] ngm = getNodeTargetMapping(conn, fid, tindex, (tp ? pgenome : null), upstream, downstream);
+		
 		NodeToTarget[] data = doBFS(nodes, nids, ngm);
 
 		NearestTSSUtil ntss = new NearestTSSUtil(conn, "ucsc.hg19", "geneName", "chrom", "txStart", "txEnd", "strand");
@@ -50,8 +45,6 @@ public class ShortestPathAnalysis {
 			NARegion ni = data[i].getNodeInfo();
 			ARegion gi = data[i].getGeneInfo();
 			String path = data[i].getPath();
-			String[] pathsplit = path.split("|");
-			int tnode = Integer.parseInt(pathsplit[pathsplit.length-1]);
 			int hc = data[i].getHopCount();
 			double avgpet = data[i]._avgpet;
 			int minpet = data[i]._minpet;
@@ -68,18 +61,19 @@ public class ShortestPathAnalysis {
 			int ns = ni.getStart();
 			int ne = ni.getEnd();
 			
-			String gene = gi.getTerm();
-			String gchr = gi.getChr();
-			int gs = gi.getStart();
-			int ge = gi.getEnd();
+			String tdataset = gi.getDataset();
+			String targetterm = gi.getTerm();
+			String targetchr = gi.getChr();
+			int targetstart = gi.getStart();
+			int targetend = gi.getEnd();
 
 			int distance = -1;
-			if(nchr.equals(gchr)){
-				if(ns <= ge && gs <= ne){
+			if(nchr.equals(targetchr)){
+				if(ns <= targetend && targetstart <= ne){
 					distance = 0;
 				}
 				else{
-					distance = Math.max(gs-ne, ns-ge);
+					distance = Math.max(targetstart-ne, ns-targetend);
 				}
 			}
 			
@@ -92,14 +86,14 @@ public class ShortestPathAnalysis {
 			int termtssd = termtssgenes[0].getDistance();
 			
 			//Get target nearest TSS
-			TSSGene[] targettssgenes = ntss.getNearestGene(gchr, gs, ge);
+			TSSGene[] targettssgenes = ntss.getNearestGene(targetchr, targetstart, targetend);
 			String targettss = targettssgenes[0].getGene();
 			for(int ii = 1; ii < targettssgenes.length; ii++){
 				targettss += ","+targettssgenes[ii].getGene();
 			}
 			int targettssd = targettssgenes[0].getDistance();
 			
-			shortestpaths.add(new ShortestPath(dataset,term,nchr,ns,ne,termtss,termtssd,tnode,hc,distance,gene,gchr,gs,ge,targettss,targettssd,avgpet,minpet,maxpet,avginter,mininter,maxinter,nc,ec,path));
+			shortestpaths.add(new ShortestPath(dataset,term,nchr,ns,ne,termtss,termtssd,hc,distance, tdataset, targetterm,targetchr,targetstart,targetend,targettss,targettssd,avgpet,minpet,maxpet,avginter,mininter,maxinter,nc,ec,path));
 		}
 			
 		
@@ -109,10 +103,12 @@ public class ShortestPathAnalysis {
 	private NodeToTarget[] doBFS(TreeMap<Integer,Node> nodes, NARegion[][] nids, ARegion[][] genes){
 		LinkedList<NodeToTarget> rv = new LinkedList<NodeToTarget>();
 		for(int i = 0; i < nids.length; i++){
-			for(int j = 0; j < nids[i].length; j++){
-				NodeToTarget[] results = doBFS(Integer.toString(i), nodes.get(nids[i][j].getNID()), nids[i][j], genes, nodes.lastKey());
-				for(int k = 0; k < results.length; k++){
-					rv.add(results[k]);
+			if(nids[i] != null){
+				for(int j = 0; j < nids[i].length; j++){
+					NodeToTarget[] results = doBFS(Integer.toString(i), nodes.get(nids[i][j].getNID()), nids[i][j], genes, nodes.lastKey());
+					for(int k = 0; k < results.length; k++){
+						rv.add(results[k]);
+					}
 				}
 			}
 		}
@@ -319,13 +315,17 @@ public class ShortestPathAnalysis {
 		return rv;
 	}
 	
-	private NARegion[][] getNodeIds(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException{
+	private NARegion[][] getNodeIds(Connection conn, long fid, Integer[] indices, int min, int max, String genome, int upstream, int downstream) throws SQLException{
 		String schema = "chiapet";
 		String indextable = schema+".SIIndex_"+fid;
 		String nodetable = schema+".Nodes_"+fid;
 		String cctable = schema+".ConnectedComponents_"+fid;
 
-		NARegion[][] rv = new NARegion[indices.length][];
+		int s = indices.length;
+		if(genome != null){
+			s++;
+		}
+		NARegion[][] rv = new NARegion[s+1][];
 		String sql = "SELECT i.nid, i.term, i.chr, i.start, i.end, c.nodecount, c.edgecount FROM "+indextable+" AS i, "+nodetable+" AS n, "+cctable+" AS c WHERE i.iid = ? AND n.id=i.nid AND n.ccid=c.id AND c.nodecount <= ? AND c.nodecount >= ?";
 
 		PreparedStatement ps = conn.prepareStatement(sql);
@@ -344,10 +344,24 @@ public class ShortestPathAnalysis {
 			rs.close();
 		}
 		ps.close();
+		
+		if(genome != null){
+			LinkedList<NARegion> l = new LinkedList<NARegion>();
+			NARegion[][] pr = getNodeGeneMapping(conn, fid, genome, upstream, downstream);
+			for(int i = 0; i < pr.length; i++){
+				if(pr[i] != null){
+					for(int j = 0; j < pr[i].length; j++){
+						l.add(pr[i][j]);
+					}
+				}
+			}
+			rv[indices.length] = l.toArray(new NARegion[0]);
+		}
+		
 		return rv;
 	}
 
-	private ARegion[][] getNodeGeneMapping(Connection conn, long fid, String genome, int upstream, int downstream){
+	private NARegion[][] getNodeGeneMapping(Connection conn, long fid, String genome, int upstream, int downstream){
 		try {
 			return getNodeGeneMapping(getChrStartSortedNodeList(conn, fid), getChrPromoterStartSortedGeneList(conn, genome, upstream, downstream));
 		} catch (SQLException e) {
@@ -356,12 +370,21 @@ public class ShortestPathAnalysis {
 		return null;
 	}
 	
-	private ARegion[][] getNodeTargetMapping(Connection conn, long fid, int index) throws SQLException{
+	private ARegion[][] getNodeTargetMapping(Connection conn, long fid, Integer[] index, String genome, int upstream, int downstream) throws SQLException{
 		String schema = "chiapet";
 		String indextable = schema+".SIIndex_"+fid;
-		String sql = "SELECT nid, term, chr, start, end FROM "+indextable+" WHERE iid = ?";
+		String in = "";
+		TreeMap<Integer, String> datasetmap = new TreeMap<Integer, String>();
+		Util u = new Util();
+		for(int i = 0; i < index.length; i++){
+			in += ",?";
+			datasetmap.put(index[i], u.getDataset(conn, fid, index[i]));
+		}
+		String sql = "SELECT nid, term, chr, start, end, iid FROM "+indextable+" WHERE iid IN(-1"+in+")";
 		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, index);
+		for(int i = 0; i < index.length; i++){
+			ps.setInt((i+1), index[i]);
+		}
 		ResultSet rs = ps.executeQuery();
 		TreeMap<Integer, LinkedList<ARegion>> map = new TreeMap<Integer, LinkedList<ARegion>>();
 		while(rs.next()){
@@ -370,15 +393,31 @@ public class ShortestPathAnalysis {
 			String chr = rs.getString(3);
 			int start = rs.getInt(4);
 			int end = rs.getInt(5);
+			int diid = rs.getInt(6);
 			
 			if(!map.containsKey(nid)){
 				map.put(nid, new LinkedList<ARegion>());
 			}
 			
-			map.get(nid).add(new ARegion(term, chr, start, end));
+			map.get(nid).add(new ARegion(datasetmap.get(diid), term, chr, start, end));
 		}
 		rs.close();
 		ps.close();
+		
+		if(genome != null){
+			ARegion[][] pr = getNodeGeneMapping(conn, fid, genome, upstream, downstream);
+			
+			for(int i = 0; i < pr.length; i++){
+				if(pr[i] != null){
+					for(int j = 0; j < pr[i].length; j++){
+						if(!map.containsKey(i)){
+							map.put(i, new LinkedList<ARegion>());
+						}
+						map.get(i).add(pr[i][j]);
+					}
+				}
+			}
+		}
 		
 		int l = 0;
 		if(map.size() > 0){
@@ -392,27 +431,28 @@ public class ShortestPathAnalysis {
 		return rv;
 	}
 	
-	private ARegion[][] getNodeGeneMapping(TreeMap<String, LinkedList<Node>> nodes, TreeMap<String, LinkedList<ARegion>> genes){
-		TreeMap<Integer, LinkedList<ARegion>> map = new TreeMap<Integer, LinkedList<ARegion>>();
+	private NARegion[][] getNodeGeneMapping(TreeMap<String, LinkedList<CCInfoNode>> nodes, TreeMap<String, LinkedList<ARegion>> genes){
+		TreeMap<Integer, LinkedList<NARegion>> map = new TreeMap<Integer, LinkedList<NARegion>>();
 		while(!nodes.isEmpty()){
-			Entry<String, LinkedList<Node>> ne = nodes.pollFirstEntry();
-			Node[] nl = ne.getValue().toArray(new Node[0]);
+			Entry<String, LinkedList<CCInfoNode>> ne = nodes.pollFirstEntry();
+			CCInfoNode[] nl = ne.getValue().toArray(new CCInfoNode[0]);
 			LinkedList<ARegion> l = genes.get(ne.getKey());
+			
 			if(l == null){
 				l = new LinkedList<ARegion>();
 			}
 			ARegion[] gl = l.toArray(new ARegion[0]);
 			
 			for(int i = 0; i < nl.length; i++){
-				Node cn = nl[i];
+				CCInfoNode cn = nl[i];
 				for(int j = 0; j < gl.length; j++){
 					ARegion cg = gl[j];
 					if(cg.getStart() <= cn.getEnd() && cn.getStart() <= cg.getEnd()){
 						int cid = cn.getId();
 						if(!map.containsKey(cid)){
-							map.put(cid, new LinkedList<ARegion>());
+							map.put(cid, new LinkedList<NARegion>());
 						}
-						map.get(cid).add(cg);
+						map.get(cid).add(new NARegion(cg.getDataset(), cid, cg.getTerm(), cg.getChr(), cg.getStart(), cg.getEnd(), cn.getNodeCount(), cn.getEdgeCount()));
 					}
 					else if(cg.getStart() > cn.getEnd()){
 						break;
@@ -423,33 +463,38 @@ public class ShortestPathAnalysis {
 		}
 		
 		
-		ARegion[][] rv = new ARegion[map.lastKey()+1][];
+		NARegion[][] rv = new NARegion[map.lastKey()+1][];
 		
 		while(!map.isEmpty()){
-			Entry<Integer, LinkedList<ARegion>> e = map.pollFirstEntry();
-			rv[e.getKey()] = e.getValue().toArray(new ARegion[0]);
+			Entry<Integer, LinkedList<NARegion>> e = map.pollFirstEntry();
+			rv[e.getKey()] = e.getValue().toArray(new NARegion[0]);
 		}
 		
 		return rv;
 	}
 	
-	private TreeMap<String, LinkedList<Node>> getChrStartSortedNodeList(Connection conn, long fid) throws SQLException{
-		String sql = "SELECT id, chr, start, end FROM chiapet.Nodes_"+fid+" AS p ORDER BY start ASC";
+	private TreeMap<String, LinkedList<CCInfoNode>> getChrStartSortedNodeList(Connection conn, long fid) throws SQLException{
+		String cctable = "chiapet.ConnectedComponents_"+fid;
+
+		String sql = "SELECT n.id, n.chr, n.start, n.end, cc.nodecount, cc.edgecount FROM chiapet.Nodes_"+fid+" AS n, "+cctable+" AS cc WHERE n.ccid = cc.id ORDER BY start ASC";
 		
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ResultSet rs = ps.executeQuery();
-		TreeMap<String, LinkedList<Node>> sortednodelist = new TreeMap<String, LinkedList<Node>>();
+		TreeMap<String, LinkedList<CCInfoNode>> sortednodelist = new TreeMap<String, LinkedList<CCInfoNode>>();
 		while(rs.next()){
 			int id = rs.getInt(1);
 			String chr = rs.getString(2);
 			int start  = rs.getInt(3);
 			int end = rs.getInt(4);
+			int nc = rs.getInt(5);
+			int ec = rs.getInt(6);
+
 			
 			if(!sortednodelist.containsKey(chr)){
-				sortednodelist.put(chr, new LinkedList<Node>());
+				sortednodelist.put(chr, new LinkedList<CCInfoNode>());
 			}
 			
-			Node n = new Node(id, chr, start, end, new Anchor[0]);
+			CCInfoNode n = new CCInfoNode(id, chr, start, end, new Anchor[0], nc, ec);
 			sortednodelist.get(chr).add(n);
 		}
 		
@@ -479,7 +524,7 @@ public class ShortestPathAnalysis {
 				sortedgenelist.put(chr, new LinkedList<ARegion>());
 			}
 			
-			ARegion g = new ARegion(gene, chr, start, end);
+			ARegion g = new ARegion("Promoter "+upstream+"/"+downstream, gene, chr, start, end);
 			sortedgenelist.get(chr).add(g);
 		}
 		
@@ -491,16 +536,22 @@ public class ShortestPathAnalysis {
 	
 	private class ARegion {
 		
+		private String _dataset;
 		private String _term;
 		private String _chr;
 		private int _start;
 		private int _end;
 		
-		public ARegion(String term, String chr, int start, int end){
+		public ARegion(String dataset, String term, String chr, int start, int end){
+			_dataset = dataset;
 			_term = term;
 			_chr = chr;
 			_start = start;
 			_end = end;
+		}
+		
+		public String getDataset(){
+			return _dataset;
 		}
 		
 		public String getTerm(){
@@ -522,13 +573,11 @@ public class ShortestPathAnalysis {
 	}
 	
 	private class NARegion extends ARegion {
-		private String _dataset;
 		private int _nid;
 		private int _numnodes;
 		private int _numedges;
 		public NARegion(String dataset, int nid, String term, String chr, int start, int end, int numnodes, int numedges) {
-			super(term, chr, start, end);
-			_dataset = dataset;
+			super(dataset, term, chr, start, end);
 			_nid = nid;
 			_numnodes = numnodes;
 			_numedges = numedges;
@@ -536,10 +585,6 @@ public class ShortestPathAnalysis {
 
 		public int getNID(){
 			return _nid;
-		}
-		
-		public String getDataset(){
-			return _dataset;
 		}
 		
 		public int getNodeCount(){
@@ -591,4 +636,23 @@ public class ShortestPathAnalysis {
 		}
 	}
 	
+	private class CCInfoNode extends Node {
+		private int _numnodes;
+		private int _numedges;
+		
+		public CCInfoNode(int id, String chr, int start, int end, Anchor[] pes, int numnodes, int numedges) {
+			super(id, chr, start, end, pes);
+			_numnodes = numnodes;
+			_numedges = numedges;
+		}
+		
+		public int getNodeCount(){
+			return _numnodes;
+		}
+		
+		public int getEdgeCount(){
+			return _numedges;
+		}
+		
+	}
 }

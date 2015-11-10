@@ -155,7 +155,8 @@ getCytoscapeNetwork = function(data, merge, parent, nids) {
 		var size = "25px";
 		var backgroundblacken = 0;
 		var borderwidth = "0px";
-		if(cur.genesymbols.length > 0){
+		var haspromoter = (cur.genesymbols.length > 0);
+		if(haspromoter){
 			label += cur.genesymbols[0];
 			for(var j = 1; j < cur.genesymbols.length; j++){
 				label += ","+cur.genesymbols[j];
@@ -173,15 +174,30 @@ getCytoscapeNetwork = function(data, merge, parent, nids) {
 			data.parent = parent;
 		}
 		
-		var fa = cur.finalannotations;
+		var fa = cur.finalannotations || [];
 		var facount = fa.length;
-		var percent = Math.round(100*(1/facount));
+		var indices = [];
 		for(var j = 0; j < facount; j++){
 			var cur = fa[j];
 			var index = superimposeindex.indexOf(cur[0]);
-			if(index > -1){
-				data["c"+index] = percent;
+			while(index > -1){
+				indices.push(index);
+				index = superimposeindex.indexOf(cur[0], index+1);
 			}
+		}
+		
+		var pd = indices.length;
+		var percent = Math.round(100*(1/pd));
+		if(haspromoter){
+			pd += pcolorindex.length;
+			percent = Math.round(100*(1/pd));
+			var siil = superimposeindex.length;
+			for(var j = 0; j < pcolorindex.length; j++){
+				data["c"+(siil+j)] = percent;
+			}
+		}
+		for(var j = 0; j < indices.length; j++){
+			data["c"+indices[j]] = percent;
 		}
 		
 		cnodes.push({ data: data });
@@ -243,6 +259,12 @@ function visualizeNetwork(ndata, callback){
 		nodescss['pie-'+(i+1)+'-background-color'] = colorindex[i];
 	    nodescss['pie-'+(i+1)+'-background-size'] = 'mapData(c'+i+', 0, 100, 0, 100)';
 	}
+	  
+	var siil = superimposeindex.length;
+	for(var i = 0; i < pcolorindex.length; i++){
+		nodescss['pie-'+(siil+i+1)+'-background-color'] = pcolorindex[i];
+	    nodescss['pie-'+(siil+i+1)+'-background-size'] = 'mapData(c'+(siil+i)+', 0, 100, 0, 100)';
+	}	  
 	  
 	var cy = cytoscape({
 		  container: document.getElementById('network'),
@@ -336,6 +358,9 @@ function setLegend(ui, siindex){
 	$(ui).empty();
 	for(var i = 0; i < siindex.length; i++){
 		$(ui).append('<div class="legendelement"><div class="legendcolorcontainter"><div class="legendcolor" style="background: '+colorindex[i]+';"></div></div><div class="legendlabel">'+datasetlabels[datasetlabelindex.indexOf(siindex[i])]+'</div></div>');
+	}
+	for(var i = 0; i < pcolorindex.length; i++){
+		$(ui).append('<div class="legendelement"><div class="legendcolorcontainter"><div class="legendcolor" style="background: '+pcolorindex[i]+';"></div></div><div class="legendlabel">Promoters (2KB From TSS)</div></div>');
 	}
 }
 

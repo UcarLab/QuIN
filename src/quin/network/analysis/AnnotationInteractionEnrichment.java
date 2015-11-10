@@ -17,30 +17,44 @@ import quin.network.db.query.SuperImposeIndex;
 import shortestpath.ShortestPath;
 import shortestpath.ShortestPathAnalysis;
 
-public class ShortestPathHeatmap {
+public class AnnotationInteractionEnrichment {
 
-	public byte[] generateHeatmap(Connection conn, long fid, Integer[] indices, int min, int max, int[] hops) throws SQLException, REngineException, REXPMismatchException{
+	public byte[] generateHeatmap(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException, REngineException, REXPMismatchException{
 		indices = filterduplicates(indices);
 		
 		int[] numnodesedges = getNumNodesEdges(conn, fid, min, max);
 		int numnodes = numnodesedges[0];
 		int numedges = numnodesedges[1];
 		int[] numannotatednodes = annotationNodeCounts(conn, fid, indices, min, max);
-		int[][] matrix = getMatrix(conn, fid, indices, min, max, hops);
-		double[][] ratio = getRatioMatrix(matrix, numannotatednodes, numnodes, numedges);
+		int[] numannotatededges = annotationEdgeCounts(conn, fid, indices, min, max);
+		int[][] matrix = getMatrix(conn, fid, indices, min, max);
+		int[][] expected = getExpectedMatrix(matrix, numannotatednodes, numnodes, numedges);
 		String[] labels = getLabels(conn, fid, indices);
 
 		RConnection rconn = new RConnection();
 		REXP rexp = rconn.parseAndEval("png('plot.png', width=1200, height=600)");
 		
-		int l = ratio.length;
+		int l = matrix.length;
 		rconn.parseAndEval("ratio = matrix(nrow="+l+", ncol="+l+")");
-		for(int i = 0; i < ratio.length; i++){
-			rconn.assign("x", ratio[i]);
-			rconn.parseAndEval("ratio["+(i+1)+",] = x");
+		rconn.parseAndEval("mat = matrix(nrow=2, ncol=2)");
+
+		for(int i = 0; i < l; i++){
+			for(int j = 0; j < l; j++){
+				rconn.parseAndEval("mat[1,1] = "+matrix[i][j]+";");
+				rconn.parseAndEval("mat[1,2] = "+(numedges-matrix[i][j])+";");
+				rconn.parseAndEval("mat[2,1] = "+expected[i][j]+";");
+				rconn.parseAndEval("mat[2,2] = "+(numedges-expected[i][j])+";");
+
+				System.out.println(Math.min(numannotatededges[i],(numannotatededges[j]))+"\t"+matrix[i][j]+"\t"+(numedges-matrix[i][j])+"\t"+expected[i][j]+"\t"+(numedges-expected[i][j]));
+				
+				//rconn.parseAndEval("ratio["+(i+1)+","+(j+1)+"] = fisher.test(x=mat, alternative=\"two.sided\")$p.value");
+				double val = (double)(matrix[i][j]-expected[i][j]);
+				rconn.parseAndEval("ratio["+(i+1)+","+(j+1)+"] = "+val*val/Math.max(1, expected[i][j]));
+
+			}
 		}
-		double[][] test = rconn.parseAndEval("ratio").asDoubleMatrix();
-		rconn.parseAndEval("logratio = log(ratio, 2);");
+
+		rconn.parseAndEval("logratio = ratio;");
 		rconn.assign("labels", labels);
 		rconn.parseAndEval("library(pheatmap);");
 		rconn.parseAndEval("pheatmap(logratio, labels_row=labels, labels_col=labels, display_numbers=TRUE, fontsize_number=16, fontsize=26);");
@@ -64,9 +78,9 @@ public class ShortestPathHeatmap {
 		return rv;
 	}
 	
-	private double[][] getRatioMatrix(int[][] observed, int[] numannotations, int numnodes, int numedges){
+	private int[][] getExpectedMatrix(int[][] observed, int[] numannotations, int numnodes, int numedges){
 		int l = observed.length;
-		double[][] rv = new double[l][l];
+		int[][] rv = new int[l][l];
 		
 		for(int i = 0; i < l; i++){
 			for(int j = 0; j < l; j++){
@@ -74,7 +88,7 @@ public class ShortestPathHeatmap {
 				if(i == j){
 					adjust = -1;
 				}
-				rv[i][j] = (double)observed[i][j]/(numedges*((double)numannotations[i]/numnodes)*((double)(numannotations[j]+adjust)/(numnodes-1)));
+				rv[i][j] = (int) Math.round(numedges*(Math.max(0, (double)numannotations[i])/numnodes)*(Math.max(0, (double)(numannotations[j]+adjust))/(numnodes-1)));
 			}
 		}
 		return rv;
@@ -98,6 +112,16 @@ public class ShortestPathHeatmap {
 		return rv;
 	}
 	
+	private int[] annotationEdgeCounts(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException{
+		SuperImposeIndex si = new SuperImposeIndex();
+		int[] rv = new int[indices.length];
+		for(int i = 0; i < indices.length; i++){
+			rv[i] = si.getAnnotationEdgeCount(conn, fid, indices[i], min, max);
+		}
+		return rv;
+	}
+	
+	
 	private Integer[] filterduplicates(Integer[] array){
 		TreeSet<Integer> ts = new TreeSet<Integer>();
 		for(int i = 0; i < array.length; i++){
@@ -106,13 +130,7 @@ public class ShortestPathHeatmap {
 		return ts.toArray(new Integer[0]);
 	}
 	
-	private int[][] getMatrix(Connection conn, long fid, Integer[] indices, int min, int max, int[] hops) throws SQLException{
-		
-		TreeSet<Integer> hopcheck = new TreeSet<Integer>();
-		for(int i = 0; i < hops.length; i++){
-			hopcheck.add(hops[i]);
-		}
-		
+	private int[][] getMatrix(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException{
 		Util u = new Util();
 		TreeMap<String, Integer> datasetindex = new TreeMap<String, Integer>();
 		for(int i = 0; i < indices.length; i++){
@@ -124,11 +142,11 @@ public class ShortestPathHeatmap {
 		ShortestPathAnalysis spa = new ShortestPathAnalysis(conn, fid);
 
 		for(int i = 0; i < l; i++){
-			ShortestPath[] paths = spa.getShortestPaths(conn, fid, indices, indices[i], min, max);
+			ShortestPath[] paths = spa.getShortestPaths(conn, fid, indices, new Integer[] {indices[i]}, min, max, false, false, null, 0,0);
 			for(int j = 0; j < paths.length; j++){
 				ShortestPath path = paths[j];
 				int term = datasetindex.get(path.getDataset());
-				if(hopcheck.contains(path.getMinimumEdgesToTarget())){
+				if(path.getMinimumEdgesToTarget() == 1){
 					matrix[i][term]++;
 				}
 			}
