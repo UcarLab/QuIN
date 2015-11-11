@@ -12,52 +12,56 @@ import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.Rserve.RConnection;
 
 import quin.export.Util;
-import quin.network.db.query.NetworkQuery;
-import quin.network.db.query.SuperImposeIndex;
-import shortestpath.ShortestPath;
-import shortestpath.ShortestPathAnalysis;
+import quin.web.networkjson.Edge;
 
 public class AnnotationInteractionEnrichment {
 
-	public byte[] generateHeatmap(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException, REngineException, REXPMismatchException{
-		indices = filterduplicates(indices);
-		
-		int[] numnodesedges = getNumNodesEdges(conn, fid, min, max);
-		int numnodes = numnodesedges[0];
-		int numedges = numnodesedges[1];
-		int[] numannotatednodes = annotationNodeCounts(conn, fid, indices, min, max);
-		int[] numannotatededges = annotationEdgeCounts(conn, fid, indices, min, max);
-		int[][] matrix = getMatrix(conn, fid, indices, min, max);
-		int[][] expected = getExpectedMatrix(matrix, numannotatednodes, numnodes, numedges);
+	public AIEJson generateHeatmap(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException, REngineException, REXPMismatchException{
 		String[] labels = getLabels(conn, fid, indices);
+		InteractionMatrix im = getMatrix(conn, fid, indices, min, max);
 
+		int[][] cm = im.getCountMatrix();
+		double[][] epm = im.getExpectedProbabilityMatrix();
+		int numedges = im.getEdgeCount();
+		
 		RConnection rconn = new RConnection();
 		REXP rexp = rconn.parseAndEval("png('plot.png', width=1200, height=600)");
 		
-		int l = matrix.length;
-		rconn.parseAndEval("ratio = matrix(nrow="+l+", ncol="+l+")");
-		rconn.parseAndEval("mat = matrix(nrow=2, ncol=2)");
+		int l = cm.length;
+		rconn.parseAndEval("heatmapmat = matrix(nrow="+l+", ncol="+l+")");
 
+		String[][] significance = new String[l][l];
+		double[][] em = new double[l][l];
+		double maxv = 0;
 		for(int i = 0; i < l; i++){
 			for(int j = 0; j < l; j++){
-				rconn.parseAndEval("mat[1,1] = "+matrix[i][j]+";");
-				rconn.parseAndEval("mat[1,2] = "+(numedges-matrix[i][j])+";");
-				rconn.parseAndEval("mat[2,1] = "+expected[i][j]+";");
-				rconn.parseAndEval("mat[2,2] = "+(numedges-expected[i][j])+";");
+				int count = cm[i][j];
+				double expected = epm[i][j]*numedges;
+				em[i][j] = expected;
+				if(count != 0 && expected != 0){
+					double ratio = Math.log(count/expected)/Math.log(2);
+					rconn.parseAndEval("heatmapmat["+(i+1)+","+(j+1)+"] = "+ratio);
+					maxv = Math.max(Math.abs(Math.ceil(ratio)), maxv);
+					double less = rconn.parseAndEval("binom.test("+cm[i][j]+", "+numedges+", p="+epm[i][j]+", alternative=\"less\")$p.value").asDouble();
+					double greater = rconn.parseAndEval("binom.test("+cm[i][j]+", "+numedges+", p="+epm[i][j]+", alternative=\"greater\")$p.value").asDouble();
 
-				System.out.println(Math.min(numannotatededges[i],(numannotatededges[j]))+"\t"+matrix[i][j]+"\t"+(numedges-matrix[i][j])+"\t"+expected[i][j]+"\t"+(numedges-expected[i][j]));
-				
-				//rconn.parseAndEval("ratio["+(i+1)+","+(j+1)+"] = fisher.test(x=mat, alternative=\"two.sided\")$p.value");
-				double val = (double)(matrix[i][j]-expected[i][j]);
-				rconn.parseAndEval("ratio["+(i+1)+","+(j+1)+"] = "+val*val/Math.max(1, expected[i][j]));
-
+					if(less < greater){
+						significance[i][j] = Double.toString(-less);
+					}
+					else{
+						significance[i][j] = Double.toString(greater);
+					}
+				}
 			}
 		}
-
-		rconn.parseAndEval("logratio = ratio;");
+		
+		double increment =2*maxv/100;
+		int toz = (int) Math.ceil(maxv/increment);
+		
+		//rconn.parseAndEval("logratio = ratio;");
 		rconn.assign("labels", labels);
 		rconn.parseAndEval("library(pheatmap);");
-		rconn.parseAndEval("pheatmap(logratio, labels_row=labels, labels_col=labels, display_numbers=TRUE, fontsize_number=16, fontsize=26);");
+		rconn.parseAndEval("pheatmap(heatmapmat, labels_row=labels, labels_col=labels, display_numbers=TRUE, fontsize_number=14, fontsize=24, cluster_rows=FALSE, cluster_cols=FALSE, breaks=seq("+-maxv+", "+maxv+", "+increment+"), color=c(colorRampPalette(c(\"blue\",\"white\"))("+toz+"),colorRampPalette(c(\"white\",\"red\"))("+toz+")));");
 
 		rconn.parseAndEval("dev.off()");
 		rexp = rconn.parseAndEval("r=readBin('plot.png','raw',1024*1024); unlink('plot.png'); r");   
@@ -66,7 +70,7 @@ public class AnnotationInteractionEnrichment {
 
 		rconn.close();
 		
-        return Base64.encodeBase64(b);    
+        return new AIEJson(new String(Base64.encodeBase64(b)), significance, cm, em, numedges, labels);    
 	}
 	
 	private String[] getLabels(Connection conn, long fid, Integer[] indices) throws SQLException{
@@ -78,93 +82,90 @@ public class AnnotationInteractionEnrichment {
 		return rv;
 	}
 	
-	private int[][] getExpectedMatrix(int[][] observed, int[] numannotations, int numnodes, int numedges){
-		int l = observed.length;
-		int[][] rv = new int[l][l];
+	
+	private InteractionMatrix getMatrix(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException{
+		AIEQuery aieq = new AIEQuery();
 		
-		for(int i = 0; i < l; i++){
-			for(int j = 0; j < l; j++){
-				int adjust = 0;
+		int nodecount = aieq.getNodeCount(conn, fid, max, min);
+		Integer[][] nodeids = aieq.getNodeIds(conn, "chiapet", fid, indices, max, min);
+		Edge[] edges = aieq.getEdges(conn, fid, max, min);
+		
+		TreeMap<Integer, Integer> indexmap = new TreeMap<Integer, Integer>();
+		
+		@SuppressWarnings("unchecked")
+		TreeSet<Integer>[] sets = new TreeSet[indices.length];
+		for(int i = 0; i < sets.length; i++){
+			sets[i] = new TreeSet<Integer>();
+			indexmap.put(indices[i], i);
+		}
+		
+		//Set the sets to easily check if a node has an annotation;
+		for(int i = 0; i < nodeids.length; i++){
+			Integer[] c = nodeids[i];
+			sets[indexmap.get(c[0])].add(c[1]);
+		}
+		
+		int il = indices.length;
+		int[][] cm = new int[il][il];
+		double[][] em = new double[il][il];
+		
+		int numedges = edges.length;
+		for(int i = 0; i < indices.length; i++){
+			for(int j = 0; j < indices.length; j++){
+				int ecount = 0;
+				for(int k = 0; k < edges.length; k++){
+					Edge ce = edges[k];
+					boolean i1 = sets[i].contains(ce.getNode1());
+					boolean i2 = sets[i].contains(ce.getNode2());
+					boolean j1 = sets[j].contains(ce.getNode1());
+					boolean j2 = sets[j].contains(ce.getNode2());
+					if((i1 && j2) || (i2 && j1)){
+						ecount++;
+					}
+				}
+				
+				int ni = sets[i].size();
+				int nj = sets[j].size();
+				double ep;
 				if(i == j){
-					adjust = -1;
+					ep = (ni/(double)nodecount)*((nj-1)/(double)(nodecount-1));
 				}
-				rv[i][j] = (int) Math.round(numedges*(Math.max(0, (double)numannotations[i])/numnodes)*(Math.max(0, (double)(numannotations[j]+adjust))/(numnodes-1)));
+				else {
+					ep = (ni/(double)nodecount)*((nj)/(double)(nodecount-1))+(nj/(double)nodecount)*((ni)/(double)(nodecount-1));
+				}
+				
+				em[i][j] = ep;
+				cm[i][j] = ecount;
 			}
 		}
-		return rv;
+
+		return new InteractionMatrix(cm, em, numedges);
 	}
 	
-	private int[] getNumNodesEdges(Connection conn, long fid, int min, int max) throws SQLException{
-		NetworkQuery nq = new NetworkQuery();
-		double[] info = nq.getNetworkInfo(conn, fid, min, max);
-		int[] rv = new int[2];
-		rv[0] = (int) info[1];
-		rv[1] = (int) info[2];
-		return rv;
-	}
-	
-	private int[] annotationNodeCounts(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException{
-		SuperImposeIndex si = new SuperImposeIndex();
-		int[] rv = new int[indices.length];
-		for(int i = 0; i < indices.length; i++){
-			rv[i] = si.getAnnotationNodeCount(conn, fid, indices[i], min, max);
-		}
-		return rv;
-	}
-	
-	private int[] annotationEdgeCounts(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException{
-		SuperImposeIndex si = new SuperImposeIndex();
-		int[] rv = new int[indices.length];
-		for(int i = 0; i < indices.length; i++){
-			rv[i] = si.getAnnotationEdgeCount(conn, fid, indices[i], min, max);
-		}
-		return rv;
-	}
-	
-	
-	private Integer[] filterduplicates(Integer[] array){
-		TreeSet<Integer> ts = new TreeSet<Integer>();
-		for(int i = 0; i < array.length; i++){
-			ts.add(array[i]);
-		}
-		return ts.toArray(new Integer[0]);
-	}
-	
-	private int[][] getMatrix(Connection conn, long fid, Integer[] indices, int min, int max) throws SQLException{
-		Util u = new Util();
-		TreeMap<String, Integer> datasetindex = new TreeMap<String, Integer>();
-		for(int i = 0; i < indices.length; i++){
-			datasetindex.put(u.getDataset(conn, fid, indices[i]), i);
+	private class InteractionMatrix {
+		
+		int[][] _cm;
+		double[][] _em;
+		int _nedges;
+		
+		public InteractionMatrix(int[][] cm, double[][] em, int nedges){
+			_cm = cm;
+			_em = em;
+			_nedges = nedges;
 		}
 		
-		int l = indices.length;
-		int[][] matrix = new int[l][l];
-		ShortestPathAnalysis spa = new ShortestPathAnalysis(conn, fid);
-
-		for(int i = 0; i < l; i++){
-			ShortestPath[] paths = spa.getShortestPaths(conn, fid, indices, new Integer[] {indices[i]}, min, max, false, false, null, 0,0);
-			for(int j = 0; j < paths.length; j++){
-				ShortestPath path = paths[j];
-				int term = datasetindex.get(path.getDataset());
-				if(path.getMinimumEdgesToTarget() == 1){
-					matrix[i][term]++;
-				}
-			}
+		public int[][] getCountMatrix(){
+			return _cm;
 		}
 		
-		//Need to divide the diagonal by two since both directions are counted
-		for(int i = 0; i < l; i++){
-			matrix[i][i] = matrix[i][i]/2;
+		public double[][] getExpectedProbabilityMatrix(){
+			return _em;
 		}
-
-		for(int i = 0; i < matrix.length; i++){
-			for(int j = 0; j < matrix.length; j++){
-				System.out.print(matrix[i][j]+"\t");
-			}
-			System.out.println();
+		
+		public int getEdgeCount(){
+			return _nedges;
 		}
-
-		return matrix;
+		
 	}
 	
 }

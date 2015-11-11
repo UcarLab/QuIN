@@ -10,7 +10,7 @@ var colorindex = [];
 var pcolorindex = [];
 
 $(function(){	
-	$(".ureset, .uupload, #u_progressclose, #b_progressclose, #resetbuild, #build, #resetview, #view, #merge, #resetmerge, #loaddata, #exportca, #exportna, #tdexport, #td_loaddata, #td_view").button();
+	$(".ureset, .uupload, #u_progressclose, #b_progressclose, #resetbuild, #build, #resetview, #view, #merge, #resetmerge, #loaddata, #exportca, #exportna, #tdexport, #td_loaddata, #td_view, #loadnm, #loadaieh").button();
 	
 	
 	$("#uploadchiapet").click(function(){
@@ -656,7 +656,6 @@ function getTDCCIDData(){
 		annotatedonly: "TRUE",
 		sortby: 1,
 		colorindex: ci,
-		promoters: (pci.length > 0).toString() // TEMPORARY, just to allow viewing of promoter targets in target discovery
 	}
 	
 	return idata;

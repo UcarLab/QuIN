@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REngineException;
 
+import quin.network.analysis.AIEJson;
 import quin.network.analysis.AnnotationInteractionEnrichment;
 import quin.web.UserSession;
 
@@ -105,7 +106,7 @@ public class AIEHeatmapServlet extends HttpServlet{
 		}
 		catch(NumberFormatException e){ }
 		
-		byte[] heatmap = new byte[0];
+		AIEJson heatmap = null;
 		AnnotationInteractionEnrichment sph = new AnnotationInteractionEnrichment();
 		try {
 			heatmap = sph.generateHeatmap(conn, fid, sids, minsize, maxsize);
@@ -127,7 +128,7 @@ public class AIEHeatmapServlet extends HttpServlet{
 		resp.setContentType("application/json");
 		PrintWriter out = resp.getWriter();
 		
-		out.print(gson.toJson(new String(heatmap)));
+		out.print(gson.toJson(heatmap, AIEJson.class));
 		out.flush();
 	}
 	

@@ -90,8 +90,12 @@ public class GetTDCCIdsServlet extends HttpServlet{
 	
 		String fminsize = req.getParameter("minsize");
 		String fmaxsize = req.getParameter("maxsize");
-		String promoters = req.getParameter("promoters");
 
+		String ssp = req.getParameter("sp");
+		String stp = req.getParameter("tp");
+
+		boolean sp = (ssp != null && ssp.equalsIgnoreCase("true"));
+		boolean tp = (stp != null && stp.equalsIgnoreCase("true"));
 
 		int minsize = 1;
 		int maxsize = Integer.MAX_VALUE;
@@ -124,12 +128,22 @@ public class GetTDCCIdsServlet extends HttpServlet{
 //		}
 
 		try {
+			
+			Integer[] p_ccids = new Integer[0];
+			if(sp || tp){
+				p_ccids = ccidq.getPromoterCCIds(conn, "chiapet", fid, 0, maxsize, minsize, false, 2000, 2000);
+			}
 			Integer[] s_ccids = ccidq.getCCIds(conn, "chiapet", fid, s_sids, 0, maxsize, minsize, false);
 			Integer[] t_ccids = ccidq.getCCIds(conn, "chiapet", fid, t_sids, 0, maxsize, minsize, false);
 
 			TreeSet<Integer> sourceset = new TreeSet<Integer>();
 			for(int i = 0; i < s_ccids.length; i++){
 				sourceset.add(s_ccids[i]);
+			}
+			if(sp){
+				for(int i = 0; i < p_ccids.length; i++){
+					sourceset.add(p_ccids[i]);
+				}
 			}
 			
 			LinkedList<Integer> finalset = new LinkedList<Integer>();
@@ -138,17 +152,14 @@ public class GetTDCCIdsServlet extends HttpServlet{
 					finalset.add(t_ccids[i]);
 				}
 			}
-			
-			if(promoters.equalsIgnoreCase("true")){
-				LinkedList<Integer> pfinalset = finalset;
-				finalset = new LinkedList<Integer>();
-				Integer[] p_ccids = ccidq.getPromoterCCIds(conn, "chiapet", fid, 0, maxsize, minsize, false, 2000, 2000);
+			if(tp){
 				for(int i = 0; i < p_ccids.length; i++){
-					if(pfinalset.contains(p_ccids[i])){
+					if(sourceset.contains(p_ccids[i])){
 						finalset.add(p_ccids[i]);
 					}
 				}
 			}
+			
 			ccids = finalset.toArray(new Integer[0]);
 		} catch (SQLException e1) {
 			e1.printStackTrace();

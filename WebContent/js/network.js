@@ -618,6 +618,10 @@ $(function(){
 		for(var i = 0; i < ccidata.snps.length; i++){
 			ccidata.labels.push(datasetlabels[datasetlabelindex.indexOf("4_"+ccidata.snps[i])]);
 		}
+		
+		
+		var displayfunction = function(a){ return parseFloat(a).toExponential(4);};
+		
 		ccidata.measure = 1;
 		
 		$("#degreeboxplot").empty().append("Loading...");
@@ -629,7 +633,7 @@ $(function(){
 			type : "post",
 			}).success(function(data) {
 				$("#degreeboxplot").empty().append('<img src="data:image/png;base64,'+data.rBoxPlot+'">');
-				$("#degreeboxplot").append(getTable(data.labels, data.mannWhitneyTable));
+				$("#degreeboxplot").append(getTable(data.labels, data.mannWhitneyTable, displayfunction));
 			}).error(function(req, status, error) {
 				//TODO
 			});
@@ -645,7 +649,7 @@ $(function(){
 			type : "post",
 			}).success(function(data) {
 				$("#closenessboxplot").empty().append('<img src="data:image/png;base64,'+data.rBoxPlot+'">');
-				$("#closenessboxplot").append(getTable(data.labels, data.mannWhitneyTable));
+				$("#closenessboxplot").append(getTable(data.labels, data.mannWhitneyTable, displayfunction));
 			}).error(function(req, status, error) {
 				//TODO
 			});
@@ -661,7 +665,7 @@ $(function(){
 			type : "post",
 			}).success(function(data) {
 				$("#harmonicboxplot").empty().append('<img src="data:image/png;base64,'+data.rBoxPlot+'">');
-				$("#harmonicboxplot").append(getTable(data.labels, data.mannWhitneyTable));
+				$("#harmonicboxplot").append(getTable(data.labels, data.mannWhitneyTable, displayfunction));
 			}).error(function(req, status, error) {
 				//TODO
 			});
@@ -677,29 +681,32 @@ $(function(){
 			type : "post",
 			}).success(function(data) {
 				$("#betweennessboxplot").empty().append('<img src="data:image/png;base64,'+data.rBoxPlot+'">');
-				$("#betweennessboxplot").append(getTable(data.labels, data.mannWhitneyTable));
+				$("#betweennessboxplot").append(getTable(data.labels, data.mannWhitneyTable, displayfunction));
 			}).error(function(req, status, error) {
 				//TODO
 			});
 	});
 })
 
-function getTable(labels, data){
-	var html = '<table border="1" cellpadding="0", cellspacing="0">';
-	html += '<tr><td>&nbsp;</td>';
+function getTable(labels, data, displayfunction){
+	if(!displayfunction){
+		displayfunction = function(a){return a};
+	}
+	var html = '<table class="nstable">';
+	html += '<tr class="nstableheader"><th>&nbsp;</th>';
 	for(var i = 0; i < labels.length; i++){
-		html += '<td>'+labels[i]+'</td>';
+		html += '<th>'+labels[i]+'</th>';
 	}
 	html += '</tr>';
 	
 	for(var i = 0; i < labels.length; i++){
-		html += '<tr><td>'+labels[i]+'</td>';
+		html += '<tr><td style="font-weight: bold;">'+labels[i]+'</td>';
 		for(var j = 0; j < labels.length; j++){
-			html += '<td>'+parseFloat(data[i+1][j+1]).toExponential(4)+'</td>';
+			html += '<td>'+displayfunction(data[i][j])+'</td>';
 		}
 		html += '</tr>'
 	}
 	
 	html += '</table>'
 	return html;
-}
+};

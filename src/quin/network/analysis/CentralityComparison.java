@@ -69,7 +69,7 @@ public class CentralityComparison {
 		}
 		
 		try {
-			rv = new CentralityComparisonJson(labels, getRBoxPlot(conn, fid, files, title, nlabels, ncolors), getMannWhitneyTable(files));
+			rv = new CentralityComparisonJson(nlabels, getRBoxPlot(conn, fid, files, title, nlabels, ncolors), getMannWhitneyTable(files));
 		} catch (REngineException e) {
 			e.printStackTrace();
 		} catch (REXPMismatchException e) {

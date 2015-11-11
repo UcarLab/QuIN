@@ -19,9 +19,11 @@ public class ExportNodeAnnotations {
 	
 	public void writeFile(Connection conn, long fid, Integer[] sids, String sf) throws SQLException, IOException{
 		String nodetable = "chiapet.Nodes_"+fid;
+		String cctable = "chiapet.ConnectedComponents_"+fid;
+
 		//String genedbgid = "ucsc."+genedb;
 		
-		String sql = "SELECT DISTINCT n.id, n.chr, n.start, n.end, n.degree, n.closeness, n.harmonic, n.betweenness FROM "+nodetable+" AS n";
+		String sql = "SELECT DISTINCT n.id, n.chr, n.start, n.end, n.degree, n.closeness, n.harmonic, n.betweenness, CAST(n.degree AS decimal(64,10))/(cc.nodecount-1), n.closeness*(cc.nodecount-1), n.harmonic/(cc.nodecount-1), (CASE WHEN cc.nodecount < 3 THEN 0 ELSE (n.betweenness/((cc.nodecount-1)*(cc.nodecount-2))) END)  FROM "+nodetable+" AS n, "+cctable+" AS cc WHERE n.ccid = cc.id";
 		
 		String[] datasets = new String[sids.length];
 		@SuppressWarnings("unchecked")
@@ -47,10 +49,13 @@ public class ExportNodeAnnotations {
 			double closeness = rs.getDouble(6);
 			double harmonic = rs.getDouble(7);
 			double betweenness = rs.getDouble(8);
-
+			double ndegree = rs.getInt(9);
+			double ncloseness = rs.getDouble(10);
+			double nharmonic = rs.getDouble(11);
+			double nbetweenness = rs.getDouble(12);
 			
 			if(!nodeinformation.containsKey(nid)){
-				nodeinformation.put(nid, new String[] {Integer.toString(nid), chr, Integer.toString(start), Integer.toString(end), Integer.toString(degree), Double.toString(closeness), Double.toString(harmonic), Double.toString(betweenness)});
+				nodeinformation.put(nid, new String[] {Integer.toString(nid), chr, Integer.toString(start), Integer.toString(end), Integer.toString(degree), Double.toString(closeness), Double.toString(harmonic), Double.toString(betweenness), Double.toString(ndegree), Double.toString(ncloseness), Double.toString(nharmonic), Double.toString(nbetweenness)});
 			}
 		}
 		
@@ -67,6 +72,10 @@ public class ExportNodeAnnotations {
 		bw.write("\tCloseness");
 		bw.write("\tHarmonic");
 		bw.write("\tBetweenness");
+		bw.write("\tNormalized Degree");
+		bw.write("\tNormalized Closeness");
+		bw.write("\tNormalized Harmonic");
+		bw.write("\tNomralized Betweenness");
 
 		for(int i = 0; i < datasets.length; i++){
 			bw.write("\t"+datasets[i]);
@@ -86,6 +95,10 @@ public class ExportNodeAnnotations {
 			bw.write("\t"+ninfo[5]);
 			bw.write("\t"+ninfo[6]);
 			bw.write("\t"+ninfo[7]);
+			bw.write("\t"+ninfo[8]);
+			bw.write("\t"+ninfo[9]);
+			bw.write("\t"+ninfo[10]);
+			bw.write("\t"+ninfo[11]);
 
 			for(int i = 0; i < datasets.length; i++){
 				bw.write("\t"+(na[i].contains(nid) ? 1 : 0));

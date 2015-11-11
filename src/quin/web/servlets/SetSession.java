@@ -13,8 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import quin.web.UserSession;
 
-import com.google.gson.Gson;
-
 import db.SQLConnectionFactory;
 
 public class SetSession extends HttpServlet{

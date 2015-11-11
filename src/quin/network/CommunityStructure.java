@@ -208,9 +208,9 @@ public class CommunityStructure {
 	 * @return The Surprise Score
 	 */
 	private double getSurpriseScore(int N, int[] csizes, int n, int p){
-		int F = (N*(N-1))/2;
-		int M = getMaxIntraCommunity(csizes);
-		int maxlinks = Math.min(M, n);
+//		int F = (N*(N-1))/2;
+//		int M = getMaxIntraCommunity(csizes);
+//		int maxlinks = Math.min(M, n);
 
 		double rv = 0;
 //		for(int j = p; j <= maxlinks; j++){
@@ -221,12 +221,12 @@ public class CommunityStructure {
 		return rv;
 	}
 	
-	private int getMaxIntraCommunity(int[] csizes){
-		int rv = 0;
-		for(int i = 0; i < csizes.length; i++){
-			rv = Math.max(rv, (csizes[i]*(csizes[i]-1))/2);
-		}
-		return rv;
-	}
+//	private int getMaxIntraCommunity(int[] csizes){
+//		int rv = 0;
+//		for(int i = 0; i < csizes.length; i++){
+//			rv = Math.max(rv, (csizes[i]*(csizes[i]-1))/2);
+//		}
+//		return rv;
+//	}
 	
 }
