@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
-import java.util.TreeSet;
+import java.util.TreeMap;
 
 public class ExportNetwork {
 	
@@ -23,7 +23,7 @@ public class ExportNetwork {
 		
 		String[] datasets = new String[indices.length];
 		@SuppressWarnings("unchecked")
-		TreeSet<Integer>[] annotations = new TreeSet[indices.length];
+		TreeMap<Integer,Integer>[] annotations = new TreeMap[indices.length];
 		Util u = new Util();
 		for(int i = 0; i < indices.length; i++){
 			datasets[i] = u.getDataset(conn, fid, indices[i]);
@@ -73,7 +73,7 @@ public class ExportNetwork {
 			
 			bw.write("annotations [\n");
 			for(int j = 0; j < datasets.length; j++){
-				bw.write("a"+j+" "+(annotations[j].contains(cn.getNodeId()) ? 1 : 0)+"\n");
+				bw.write("a"+j+" "+(annotations[j].containsKey(cn.getNodeId()) ? annotations[j].get(cn.getNodeId()) : 0)+"\n");
 			}
 			bw.write("]\n");
 

@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class ExportNodeAnnotations {
 
@@ -27,7 +26,7 @@ public class ExportNodeAnnotations {
 		
 		String[] datasets = new String[sids.length];
 		@SuppressWarnings("unchecked")
-		TreeSet<Integer>[] na = new TreeSet[sids.length];
+		TreeMap<Integer, Integer>[] na = new TreeMap[sids.length];
 		Util u = new Util();
 		for(int i = 0; i < sids.length; i++){
 			datasets[i] = u.getDataset(conn, fid, sids[i]);
@@ -101,7 +100,7 @@ public class ExportNodeAnnotations {
 			bw.write("\t"+ninfo[11]);
 
 			for(int i = 0; i < datasets.length; i++){
-				bw.write("\t"+(na[i].contains(nid) ? 1 : 0));
+				bw.write("\t"+(na[i].containsKey(nid) ? na[i].get(nid) : 0));
 			}
 			bw.write("\n");
 		}

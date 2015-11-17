@@ -42,7 +42,7 @@ public class InteractionSeparationBarplot {
 	}
 	
 	private File writeFile(Connection conn, long fid) throws IOException, SQLException{
-		String[] labels = new String[] {"Edge", "Same Node", "One Anchor", "No Anchors", "Intrachrom Dist", "Interchrom", "Intrachrom", "Ambiguous"};
+		String[] labels = new String[] {"Edge", "Self-loop", "Orphan Anchor", "Orphan Intera", "Distal Intra", "Excluded Inter", "Excluded Intra", "Ambiguous"};
 		int[] index = new int[] {0,1,3,2,4,5,9,6};
 		TreeMap<Integer, Integer> tm = new TreeMap<Integer,Integer>();
 		for(int i = 0; i < index.length; i++){

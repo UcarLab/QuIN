@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.TreeSet;
+import java.util.TreeMap;
 
 public class Util {
 
@@ -45,15 +45,21 @@ public class Util {
 		return null;
 	}
 	
-	public TreeSet<Integer> getAnnotationNodeIds(Connection conn, long fid, int ssid) throws SQLException{
+	public TreeMap<Integer, Integer> getAnnotationNodeIds(Connection conn, long fid, int ssid) throws SQLException{
 		String table = "chiapet.SIIndex_"+fid;
-		String sql = "SELECT DISTINCT NID FROM "+table+" AS si WHERE iid=?";
+		String sql = "SELECT NID FROM "+table+" AS si WHERE iid=?";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setInt(1, ssid);
 		ResultSet rs = ps.executeQuery();
-		TreeSet<Integer> rv = new TreeSet<Integer>();
+		TreeMap<Integer, Integer> rv = new TreeMap<Integer, Integer>();
 		while(rs.next()){
-			rv.add(rs.getInt(1));
+			int nid = rs.getInt(1);
+			if(rv.containsKey(nid)){
+				rv.put(nid, rv.get(nid)+1);
+			}
+			else{
+				rv.put(nid, 1);
+			}
 		}
 		rs.close();
 		ps.close();

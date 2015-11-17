@@ -29,7 +29,7 @@ public class ExportMinHopFile {
 		BufferedWriter bw;
 		try {
 			bw = new BufferedWriter(new FileWriter(f));
-			bw.write("Dataset\tSource Term\tSource Chr\tSource Start\tSource End\tSource Nearest TSS\tSource Nearest TSS Distance\tHop Count\tDistance\tTarget Dataset\tTarget Term\tTarget Chr\tTarget Start\tTarget End\tTarget Nearest TSS\tTarget Nearest TSS Distance\tAVG PET/Read Count\tMin PET/Read Count\tMax PET/Read Count\tAVG Interactions\tMin Interactions\tMax Interactions\tTotal Nodes In Component\tTotal Edges In Component\tPath\n");
+			bw.write("Source Dataset\tSource Term\tSource Chr\tSource Start\tSource End\tSource Nearest TSS\tSource Nearest TSS Distance\tHop Count\tDistance\tTarget Dataset\tTarget Term\tTarget Chr\tTarget Start\tTarget End\tTarget Nearest TSS\tTarget Nearest TSS Distance\tAVG PET/Read Count\tMin PET/Read Count\tMax PET/Read Count\tAVG Interactions\tMin Interactions\tMax Interactions\tTotal Nodes In Component\tTotal Edges In Component\tPath\n");
 			
 			ShortestPath[] paths = spa.getShortestPaths(conn, fid, indices, tindex, min, max, sp, tp, genome, upstream, downstream);
 			for(int i = 0; i < paths.length; i++){

@@ -184,13 +184,13 @@ $(function(){
 				$("#sph").empty();
 				
 				if(data && data != null){
-					$("#sph").append('<b>Heatmap of Log2 Oberved/Expected frequencies:</b><br/>');
+					$("#sph").append('<b>Heatmap of Log2 Observed/Expected frequencies:</b><br/>');
 					$("#sph").append('<img src="data:image/png;base64,'+data.heatmap+'">');
 					$("#sph").append('<br/><br/><b>Binomial Test P-Values (Positive values are from the Greater Than Hypothesis, Negative values are from the Less Than hypothesis):</b><br/>');
 					$("#sph").append(getTable(data.labels, data.binomialmatrix, function(a){ return parseFloat(a).toExponential(4);}));
 					$("#sph").append('<br/><br/><b>Observed frequency of edges between annotations:</b><br/>');
 					$("#sph").append(getTable(data.labels, data.countmatrix));
-					$("#sph").append('<br/><br/><b>Expected frequency of edges between annotations (Total edges: '+data.edgecount+'):</b><br/>');
+					$("#sph").append('<br/><br/><b>Expected frequency of edges between annotations (Total Edges: '+data.edgecount+'):</b><br/>');
 					$("#sph").append(getTable(data.labels, data.expectedmatrix, function(a){ return parseFloat(a).toFixed(4);}));
 
 				}

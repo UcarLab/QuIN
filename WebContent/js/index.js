@@ -371,6 +371,7 @@ function viewNetwork(){
 	
 	$("#apptabs").tabs("option", "disabled", [] );
 	$("#network").empty().append("Loading...");
+	$("#sph").empty();
 
 	$("#ns_name").empty().append(name);
 	$("#ns_comp").empty().append("&nbsp;");
