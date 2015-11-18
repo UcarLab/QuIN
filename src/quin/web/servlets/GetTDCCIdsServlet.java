@@ -147,15 +147,18 @@ public class GetTDCCIdsServlet extends HttpServlet{
 			}
 			
 			LinkedList<Integer> finalset = new LinkedList<Integer>();
+			TreeSet<Integer> dupcheck = new TreeSet<Integer>();
 			for(int i = 0; i < t_ccids.length; i++){
-				if(sourceset.contains(t_ccids[i])){
+				if(sourceset.contains(t_ccids[i]) && !dupcheck.contains(t_ccids[i])){
 					finalset.add(t_ccids[i]);
+					dupcheck.add(t_ccids[i]);
 				}
 			}
 			if(tp){
 				for(int i = 0; i < p_ccids.length; i++){
-					if(sourceset.contains(p_ccids[i])){
+					if(sourceset.contains(p_ccids[i]) && !dupcheck.contains(p_ccids[i])){
 						finalset.add(p_ccids[i]);
+						dupcheck.add(p_ccids[i]);
 					}
 				}
 			}
