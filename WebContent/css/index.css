@@ -178,3 +178,9 @@ body {
 tr:hover td{
 	background-color: #dfdfdf;
 }
+
+#b_instructions, #uinstructions {
+	font-size: 1.1em;
+	font-weight: bold;
+	margin-top: 10px;
+}

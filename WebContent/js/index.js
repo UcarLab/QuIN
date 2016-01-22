@@ -237,7 +237,7 @@ $(function(){
 	 $(".tdt_superimposedcolor").spectrum("set", colors[1]);
 });
 
-function initProgress(uidialog, uiclose, uibar, uibarlabel, message){
+function initProgress(uidialog, uiclose, uibar, uibarlabel, message, uiinstruct, imessage){
 	$(uidialog).dialog("open");
 	$(uiclose).hide();
 	$(uibar).progressbar("value", false);
@@ -245,22 +245,26 @@ function initProgress(uidialog, uiclose, uibar, uibarlabel, message){
 	$(uibar).find(".ui-progressbar-value").css({
 		"background": "#8ad"
 	});
+	$(uiinstruct).empty().append(imessage);
 }
 
-function progressSuccess(uibar, uibarlabel, message){
+function progressSuccess(uibar, uibarlabel, message, uiinstruct, imessage, callback){
 	$(uibar).progressbar("value", 100);
 	$(uibarlabel).empty().append(message);
 	$(uibar).find(".ui-progressbar-value").css({
 		"background": "green"
 	});
+	$(uiinstruct).empty().append(imessage);
+	callback();
 }
 
-function progressFail(uibar, uibarlabel, data){
+function progressFail(uibar, uibarlabel, data, uiinstruct, imessage){
 	$(uibar).progressbar("value", 100);
 	$(uibarlabel).empty().append(data);
 	$(uibar).find(".ui-progressbar-value").css({
 		"background": "red"
 	});
+	$(uiinstruct).empty().append(imessage);
 }
 
 function progressComplete(uiclose){
@@ -268,7 +272,7 @@ function progressComplete(uiclose){
 }
 
 function uploadChIAPETData(){
-	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File");
+	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File", "#u_instructions", "");
 	
 	var data = new FormData();
 	
@@ -279,7 +283,7 @@ function uploadChIAPETData(){
 }
 
 function importNetwork(){
-	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File");
+	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File", "#u_instructions", "");
 	var data = new FormData();
 	data.append('name', $('#import_label').val());
 	data.append('file', $('#import_file')[0].files[0]);
@@ -288,7 +292,7 @@ function importNetwork(){
 }
 
 function uploadBEDFile(){
-	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File");
+	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File", "#u_instructions", "");
 	
 	var data = new FormData();
 	
@@ -299,7 +303,7 @@ function uploadBEDFile(){
 }
 
 function uploadGeneList(){
-	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File");
+	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File", "#u_instructions", "");
 	
 	var data = new FormData();
 	
@@ -311,7 +315,7 @@ function uploadGeneList(){
 }
 
 function uploadTDList(){
-	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File");
+	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File", "#u_instructions", "");
 	
 	var data = new FormData();
 	
@@ -323,7 +327,7 @@ function uploadTDList(){
 }
 
 function uploadSNPList(){
-	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File");
+	initProgress("#uploaddialog", "#u_progressclose", "#u_progressbar", "#u_progresslabel", "Uploading File", "#u_instructions", "");
 	
 	var data = new FormData();
 	
@@ -346,17 +350,17 @@ function uploadAjax(url, idata){
 			}).success(function(data) {
 				if(data == "1"){
 					//success!
-					progressSuccess("#u_progressbar", "#u_progresslabel", "Upload Complete!");
+					progressSuccess("#u_progressbar", "#u_progresslabel", "Upload Complete!", "#u_instructions", "Please find your data available in the Build Network and/or Explore Network menus.");
 					updateMenus();
 				}
 				else{
 					//error
-					progressFail("#u_progressbar", "#u_progresslabel", data);
+					progressFail("#u_progressbar", "#u_progresslabel", data, "#u_instructions", "");
 				}
 				progressComplete("#u_progressclose");
 
 			}).error(function(req, status, error) {
-				progressFail("#u_progressbar", "#u_progresslabel", status+error);
+				progressFail("#u_progressbar", "#u_progresslabel", status+error, "#u_instructions", "");
 				progressComplete("#u_progressclose");
 		});
 	}
@@ -699,7 +703,7 @@ function viewTDNetwork(){
 }
 
 function mergeNetwork(){
-	initProgress("#builddialog", "#b_progressclose", "#b_progressbar", "#b_progresslabel", "Building Network");
+	initProgress("#builddialog", "#b_progressclose", "#b_progressbar", "#b_progresslabel", "Building Network", "#b_instructions", "");
 	var name = $("#m_name").val();
 	var fid1 = $("#m_n1").val();
 	var fid2 = $("#m_n2").val();
@@ -719,23 +723,26 @@ function mergeNetwork(){
 		}).success(function(data) {
 			if(data[0] == 1){
 				//success!
-				progressSuccess("#b_progressbar", "#b_progresslabel", "Network Complete!");
+				var callback = function(){
+					$("#menuaccordion").accordion("option", "active", 7);
+				};
+				progressSuccess("#b_progressbar", "#b_progresslabel", "Network Complete!", "#b_instructions", "Please use the Explore Network menu to view this network.", callback);
 				updateMenus();
 			}
 			else{
 				//error
-				progressFail("#b_progressbar", "#b_progresslabel", data[0]);
+				progressFail("#b_progressbar", "#b_progresslabel", data[0], "#b_instructions", "");
 			}
 			progressComplete("#b_progressclose");
 		}).error(function(req, status, error) {
-			progressFail("#b_progressbar", "#b_progresslabel", error);
+			progressFail("#b_progressbar", "#b_progresslabel", error, "#b_instructions", "");
 			progressComplete("#b_progressclose");
 		});
 }
 
 
 function buildNetwork(){
-	initProgress("#builddialog", "#b_progressclose", "#b_progressbar", "#b_progresslabel", "Building Network");
+	initProgress("#builddialog", "#b_progressclose", "#b_progressbar", "#b_progresslabel", "Building Network", "#b_instructions", "");
 
 	var name = $("#b_name").val();
 	var fid = $("#b_dataset").val();
@@ -764,16 +771,19 @@ function buildNetwork(){
 		}).success(function(data) {
 			if(data[0] == 1){
 				//success!
-				progressSuccess("#b_progressbar", "#b_progresslabel", "Network Complete!");
+				var callback = function(){
+					$("#menuaccordion").accordion("option", "active", 7);
+				};
+				progressSuccess("#b_progressbar", "#b_progresslabel", "Network Complete!", "#b_instructions", "Please use the Explore Network menu to view this network.", callback);
 				updateMenus();
 			}
 			else{
 				//error
-				progressFail("#b_progressbar", "#b_progresslabel", data[0]);
+				progressFail("#b_progressbar", "#b_progresslabel", data[0], "#b_instructions", "");
 			}
 			progressComplete("#b_progressclose");
 		}).error(function(req, status, error) {
-			progressFail("#b_progressbar", "#b_progresslabel", error);
+			progressFail("#b_progressbar", "#b_progresslabel", error, "#b_instructions", "");
 			progressComplete("#b_progressclose");
 		});
 }

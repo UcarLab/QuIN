@@ -3,6 +3,8 @@ package quin.web.servlets;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -85,7 +87,16 @@ public class BuildNetwork extends HttpServlet {
 		
 		String name = req.getParameter("name");
 		if (name == null || name.trim().equals("")) {
-			name = "Network  " + fid;
+			Date date = new Date();
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			int month = cal.get(Calendar.MONTH)+1;
+			int day = cal.get(Calendar.DAY_OF_MONTH);
+			int year = cal.get(Calendar.YEAR);
+			int hour = cal.get(Calendar.HOUR_OF_DAY);
+			int minutes = cal.get(Calendar.MINUTE);
+			int seconds = cal.get(Calendar.SECOND);
+			name = "Network "+month+"/"+day+"/"+year+" "+hour+":"+minutes+":"+seconds;
 		}
 
 		// set build parameters:
