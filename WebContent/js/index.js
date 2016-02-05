@@ -350,7 +350,7 @@ function uploadAjax(url, idata){
 			}).success(function(data) {
 				if(data == "1"){
 					//success!
-					progressSuccess("#u_progressbar", "#u_progresslabel", "Upload Complete!", "#u_instructions", "Please find your data available in the Build Network and/or Explore Network menus.");
+					progressSuccess("#u_progressbar", "#u_progresslabel", "Upload Complete!", "#u_instructions", "Please find your data available in the Build Network and/or Explore Network menus.", function(){});
 					updateMenus();
 				}
 				else{
