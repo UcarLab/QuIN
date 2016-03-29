@@ -6,14 +6,18 @@ public class AIEJson {
 	private String[][] binomialmatrix;
 	private int[][] countmatrix;
 	private double[][] expectedmatrix;
+	private double[][] texpectedmatrix;
+	private double[][] permutationpval;
 	private int edgecount;
 	private String[] labels;
 	
-	public AIEJson(String hm, String[][] bm, int[][] cm, double[][] em, int ec, String[] l){
+	public AIEJson(String hm, String[][] bm, int[][] cm, double[][] em, double[][] tem, double[][] ppv, int ec, String[] l){
 		heatmap = hm;
 		binomialmatrix = bm;
 		countmatrix = cm;
 		expectedmatrix = em;
+		texpectedmatrix = tem;
+		permutationpval = ppv;
 		edgecount = ec;
 		labels = l;
 	}
@@ -32,6 +36,14 @@ public class AIEJson {
 	
 	public double[][] getExpectedMatrix(){
 		return expectedmatrix;
+	}
+	
+	public double[][] getTExpectedMatrix(){
+		return texpectedmatrix;
+	}
+	
+	public double[][] getPermutationPVal(){
+		return permutationpval;
 	}
 	
 	public int getEdgeCount(){

@@ -680,8 +680,12 @@
 						</div>
 						<div id="tabs-4">
 							<div>
-								<button id="loadaieh">Run Annotation Interaction Enrichment</button>
+								<b>Background Type:</b> <input type="radio" name="testtype" value="t" id="ttest" checked="checked"><label for="ttest">Theoretical</label> <input type="radio" name="testtype" value="p" id="ptest"><label for="ptest">Permutation</label>
 							</div>
+							<div id="permutetest">
+								<b>Number of Permutations (1-100000):</b> <input type="text" name="numpermutations" id="numpermutations" value="1000">
+							</div>
+							<div><button id="loadaieh">Run Annotation Interaction Enrichment</button></div>
 							<br />
 							<div id="sph">&nbsp;</div>
 						</div>

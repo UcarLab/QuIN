@@ -175,7 +175,9 @@ $(function(){
 				regions: ccidata.regions,
 				snps: ccidata.snps,
 				minsize: ccidata.minsize,
-				maxsize: ccidata.maxsize
+				maxsize: ccidata.maxsize,
+				testtype: $("#ptest").prop("checked") ? "p" : "t",
+				permutations: $("#numpermutations").val()
 			},
 			dataType : "json",
 			cache: false,
@@ -186,13 +188,21 @@ $(function(){
 				if(data && data != null){
 					$("#sph").append('<b>Heatmap of Log2 Observed/Expected frequencies:</b><br/>');
 					$("#sph").append('<img src="data:image/png;base64,'+data.heatmap+'">');
-					$("#sph").append('<br/><br/><b>Binomial Test P-Values (Positive values are from the Greater Than Hypothesis, Negative values are from the Less Than hypothesis):</b><br/>');
-					$("#sph").append(getTable(data.labels, data.binomialmatrix, function(a){ return parseFloat(a).toExponential(4);}));
 					$("#sph").append('<br/><br/><b>Observed frequency of edges between annotations:</b><br/>');
 					$("#sph").append(getTable(data.labels, data.countmatrix));
-					$("#sph").append('<br/><br/><b>Expected frequency of edges between annotations (Total Edges: '+data.edgecount+'):</b><br/>');
-					$("#sph").append(getTable(data.labels, data.expectedmatrix, function(a){ return parseFloat(a).toFixed(4);}));
-
+					if(data.expectedmatrix){
+						$("#sph").append('<br/><br/><b>Permuted Expected frequency of edges between annotations (Total Edges: '+data.edgecount+'):</b><br/>');
+						$("#sph").append(getTable(data.labels, data.expectedmatrix, function(a){ return parseFloat(a).toFixed(4);}));
+					}
+					$("#sph").append('<br/><br/><b>Theoretical Expected frequency of edges between annotations (Total Edges: '+data.edgecount+'):</b><br/>');
+					$("#sph").append(getTable(data.labels, data.texpectedmatrix, function(a){ return parseFloat(a).toFixed(4);}));
+					$("#sph").append('<br/><br/><b>Binomial Test P-Values (Positive values are from the Greater Than Hypothesis, Negative values are from the Less Than hypothesis):</b><br/>');
+					$("#sph").append(getTable(data.labels, data.binomialmatrix, function(a){ return parseFloat(a).toExponential(4);}));
+				
+					if(data.expectedmatrix){
+						$("#sph").append('<br/><br/><b>Two-Tailed P-Values (using the null distribution derived from permutations):</b><br/>');
+						$("#sph").append(getTable(data.labels, data.permutationpval, function(a){ return parseFloat(a).toExponential(4);}));
+					}
 				}
 				else{
 					$("#sph").append("An error occurred while performing this analysis.");
@@ -202,6 +212,13 @@ $(function(){
 			});
 	});
 	
+	$("#permutetest").hide();
+	$("#ttest").click(function(){
+		$("#permutetest").hide();
+	})
+	$("#ptest").click(function(){
+		$("#permutetest").show();
+	})
 
 	
 	$("#gotoccb").button();

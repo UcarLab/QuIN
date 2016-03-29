@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.TreeMap;
 
 import quin.web.networkjson.Edge;
 
@@ -97,5 +98,36 @@ public class AIEQuery {
 		return l.toArray(new Edge[0]);
 	}
 	
+	public Edge[] getAdjustedNodeIdEdges(Edge[] edges){
+		TreeMap<Integer, Integer> m = new TreeMap<Integer, Integer>();
+		Edge[] rv= new Edge[edges.length];
+		int count = 0;
+		for(int i = 0;i < edges.length; i++){
+			Edge e = edges[i];
+			int n1 = e.getNode1();
+			int n2 = e.getNode2();
+			if(!m.containsKey(n1)){
+				m.put(n1, count++);
+			}
+			if(!m.containsKey(n2)){
+				m.put(n2, count++);
+			}
+			rv[i] = new Edge();
+			rv[i].setId(e.getId());
+			rv[i].setNode1(m.get(n1));
+			rv[i].setNode2(m.get(n2));
+			rv[i].setPETCount(e.getPETCount());
+			rv[i].setInteractionCount(e.getInteractionCount());
+		}
+		return rv;
+	}
+	
+	public int getMaxIndex(Edge[] edges){
+		int max = -1;
+		for(int i = 0; i < edges.length; i++){
+			max = Math.max(Math.max(edges[i].getNode1(), edges[i].getNode2()), max);
+		}
+		return max;
+	}
 	
 }

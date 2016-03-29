@@ -86,6 +86,22 @@ public class AIEHeatmapServlet extends HttpServlet{
 		String[] diseaselists = req.getParameterValues("diseases[]");
 		String[] regionlists = req.getParameterValues("regions[]");
 		String[] snplists = req.getParameterValues("snps[]");
+		
+		int numpermutes = -1;
+		String testtype = req.getParameter("testtype");
+		if(testtype.equalsIgnoreCase("p")){
+			String numpermutess = req.getParameter("permutations");
+			try {
+				numpermutes = Integer.parseInt(numpermutess);
+				if(numpermutes < 1){
+					numpermutes = 1000;
+				}
+				numpermutes = Math.min(numpermutes, 100000);
+			}
+			catch(NumberFormatException e){
+				
+			}
+		}
 
 		//int ts = Integer.parseInt(traitsrc);
 		int ts = 2; //Just GWAS for now.
@@ -109,7 +125,7 @@ public class AIEHeatmapServlet extends HttpServlet{
 		AIEJson heatmap = null;
 		AnnotationInteractionEnrichment sph = new AnnotationInteractionEnrichment();
 		try {
-			heatmap = sph.generateHeatmap(conn, fid, sids, minsize, maxsize);
+			heatmap = sph.generateHeatmap(conn, fid, sids, minsize, maxsize, numpermutes);
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		} catch (REngineException e) {
