@@ -92,4 +92,12 @@ public class Util {
 		return getDataset(conn, did, "usersessions.SNPLists");
 	}
 	
+	
+	public String[] getSIDataset(Connection conn, long[] did) throws SQLException{
+		String[] rv = new String[did.length];
+		for(int i = 0; i < did.length; i++){
+			rv[i] = getDataset(conn, did[i], "usersessions.ChiapetData");
+		}
+		return rv;
+	}
 }

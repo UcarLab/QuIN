@@ -41,6 +41,15 @@ public class SIIndexUtil {
 		return sidsl.toArray(new Integer[0]);
 	}
 	
+	public long[] getSupportingEdgeIds(Connection conn, long uid, String[] did){
+		try {
+			return getIds(conn, did, uid, "usersessions.ChiapetData");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return new long[0];
+	}
+	
 	//TODO make superclass/function class
 	private long[] getIds(Connection conn, String[] params, long uid, String table) throws SQLException{
 		if(params == null){

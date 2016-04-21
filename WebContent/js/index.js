@@ -8,6 +8,7 @@ var colors = ["#0099ff", "#ff0000", "#00cc00", "#ffcc00", "#663399",
 			"#ffff99" ];
 var colorindex = [];
 var pcolorindex = [];
+var secolorindex = [];
 
 $(function(){	
 	$(".ureset, .uupload, #u_progressclose, #b_progressclose, #resetbuild, #build, #resetview, #view, #merge, #resetmerge, #loaddata, #exportca, #exportna, #tdexport, #td_loaddata, #td_view, #loadnm, #loadaieh").button();
@@ -208,7 +209,7 @@ $(function(){
 	 
 	 
 	 
-	 $(".superimposedcolor, .tdt_superimposedcolor, .tds_superimposedcolor").spectrum({
+	 $(".superimposedcolor, .tdt_superimposedcolor, .tds_superimposedcolor, .td_secolor, .e_sedgescolor").spectrum({
 		    color: colors[0],
 		    showInput: true,
 		    className: "full-spectrum",
@@ -447,6 +448,16 @@ function viewNetwork(){
 	colorindex = ci;
 	pcolorindex = pci;
 	
+	
+	//add supporting interactions
+	var si = [];
+	var sic = []
+	$(".e_sedgeselement").each(function(){
+		si.push($(this).find(".e_se").val());
+		sic.push($(this).find(".e_sedgescolor").spectrum("get").toString());
+	});
+	secolorindex = sic;
+	
 	var idata = {
 		network: network,
 		genes: genes,
@@ -458,7 +469,9 @@ function viewNetwork(){
 		maxsize: $("#e_size2").val(),
 		annotatedonly: $("#annotatedonly").prop("checked").toString(),
 		sortby: $("#sortby").val(),
-		colorindex: ci
+		colorindex: ci,
+		supportingedges: si,
+		secolorindex: sic
 	}
 	
 	$.ajax({
@@ -639,6 +652,15 @@ function getTDCCIDData(){
 	colorindex = ci;
 	pcolorindex = pci;
 	
+	//add supporting interactions
+	var si = [];
+	var sic = []
+	$(".td_sedgeselement").each(function(){
+		si.push($(this).find(".td_se").val());
+		sic.push($(this).find(".td_secolor").spectrum("get").toString());
+	});
+	secolorindex = sic;
+	
 	var idata = {
 		network: network,
 		genes: genes,
@@ -661,6 +683,8 @@ function getTDCCIDData(){
 		annotatedonly: "TRUE",
 		sortby: 1,
 		colorindex: ci,
+		supportingedges: si,
+		secolorindex: sic
 	}
 	
 	return idata;
@@ -800,12 +824,15 @@ function updateMenus(){
 		$("#m_n1").empty();
 		$("#m_n2").empty();
 		updateSelect("#b_dataset", data.pchiapetdata, "Available Data");
+
+
 		updateSelect("#e_chiapet", data.pnetworks, "Available Networks");
 		updateSelect("#td_network", data.pnetworks, "Available Networks");
 		updateSelect("#m_n1", data.pnetworks, "Available Networks");
 		updateSelect("#m_n2", data.pnetworks, "Available Networks");
 
 		updateSelect("#b_dataset", data.chiapetdata, "Uploaded Data");
+		
 		updateSelect("#e_chiapet", data.networks, "Uploaded Networks");
 		updateSelect("#td_network", data.networks, "Uploaded Networks");
 		updateSelect("#m_n1", data.networks, "Uploaded Networks");
@@ -814,6 +841,14 @@ function updateMenus(){
 		updateSuperImposeSelect(".superimposedsets", data, [["-1", "None"]]);
 		updateSuperImposeSelect(".tds_superimposedsets", data, [["P", "Promoters (2KB from TSS)"]]);
 		updateSuperImposeSelect(".tdt_superimposedsets", data, [["P", "Promoters (2KB from TSS)"]]);
+		
+		
+		addInitVals(".e_se", [["-1", "None"]]);
+		addSuperImposeSelectGroup(".e_se", "Uploaded Data", data.chiapetdata, "");
+		addSuperImposeSelectGroup(".e_se", "Available Data", data.pchiapetdata, "");
+		addInitVals(".td_se", [["-1", "None"]]);
+		addSuperImposeSelectGroup(".td_se", "Available Data", data.pchiapetdata, "");
+		addSuperImposeSelectGroup(".td_se", "Uploaded Data", data.chiapetdata, "");
 
 		updateDatasetLabels(data);
 	});
@@ -850,13 +885,17 @@ function addSuperImposeSelectGroup(ui, grouplabel, data, dataprefix){
 	$(ui).append(html);
 }
 
-function updateSuperImposeSelect(ui, data, initvals){
+function addInitVals(ui, initvals){
 	$(ui).empty();
 	if(initvals instanceof Array){
 		for(var i = 0; i < initvals.length; i ++){
 			$(ui).append('<option value="'+initvals[i][0]+'">'+initvals[i][1]+'</option>');
 		}
 	}
+}
+
+function updateSuperImposeSelect(ui, data, initvals){
+	addInitVals(ui, initvals)
 
 	addSuperImposeSelectGroup(ui, "Preloaded Region Lists", data.pregionlists, "1_");
 	addSuperImposeSelectGroup(ui, "Uploaded Region Lists", data.regionlists, "1_");
@@ -977,6 +1016,14 @@ function addTDSource(){
 
 function addTDTarget(){
 	addAnnotationSet("tdt_superimposedsets", "tdt_superimposedelement", "tdt_superimposedcolordiv", "tdt_superimposedcolor", TDColorOffset(), [["-1", "None"]]);
+}
+
+function addTDSE(){
+	addAnnotationSet("td_sedges", "td_sedgeselement", "td_secolordiv", "td_secolor", $(".td_sedgeselement").length);
+}
+
+function addESE(){
+	addAnnotationSet("e_sedges", "e_sedgeselement", "e_sedgescolordiv", "e_sedgescolor", $(".e_sedgeselement").length);
 }
 
 

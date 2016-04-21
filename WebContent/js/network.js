@@ -136,6 +136,7 @@ var getSquishedNetwork = function(data){
 }
 
 getCytoscapeNetwork = function(data, merge, parent, nids) {
+	var sedges = data.supportingedges;
 	if(false){
 		data = getSquishedNetwork(data);
 	}
@@ -227,6 +228,7 @@ getCytoscapeNetwork = function(data, merge, parent, nids) {
 	for (var i = 0; i < edges.length; i++) {
 		var cur = edges[i];
 		var weight = parseInt((1+Math.round(9*((cur.petcount-minpet)/diff))));
+		
 		cedges.push({ data: {
 			id: "e_"+cur.id,
 			label : cur.petcount+" ("+cur.interactioncount+")",
@@ -235,6 +237,20 @@ getCytoscapeNetwork = function(data, merge, parent, nids) {
 			weight : weight
 		}});
 	}
+	
+	for(var i = 0; i < sedges.length; i++){
+		for(var j = 0; j < sedges[i].length; j++){
+			cedges.push({ data: {
+				id: "se_"+sedges[i][j].id+"_"+j,
+				label : "",
+				source : "n_"+sedges[i][j].node1,
+				target : "n_"+sedges[i][j].node2,
+				weight : 1,
+				secolor : secolorindex[i]
+			}, classes : 'supportingedge' });
+		}
+	}
+
 
 	return {
 		nodes : cnodes,
@@ -313,6 +329,13 @@ function visualizeNetwork(ndata, callback){
 		    	'line-color': 'black',
 		        'text-outline-color': '#ccc',
 		        'text-outline-width': 0.5
+		      }
+		    },
+		    {
+		      selector: 'edge.supportingedge',
+		      css: {
+		        'line-style': 'dashed',
+		    	'line-color': 'data(secolor)',
 		      }
 		    }
 		  ],

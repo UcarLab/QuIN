@@ -6,7 +6,7 @@ public class ShortestPath {
 			_targetterm, _targetchr, _targettss, _path;
 	private int _termstart, _termend, _termtssd, _minnumedges, _distance,
 			_targetstart, _targetend, _targettssd, _nodecount, _edgecount,
-			_mininter, _maxinter;
+			_mininter, _maxinter, _ccid;
 	private double _avgscore, _minscore, _maxscore, _avginter;
 
 	public ShortestPath(String dataset, String term, String termchr,
@@ -15,7 +15,7 @@ public class ShortestPath {
 			String targetterm, String targetchr, int targetstart,
 			int targetend, String targettss, int targettssd, double avgscore,
 			double minscore, double maxscore, double avginter, int mininter,
-			int maxinter, int nodecount, int edgecount, String path) {
+			int maxinter, int nodecount, int edgecount, String path, int ccid) {
 
 		_dataset = dataset;
 		_term = term;
@@ -42,7 +42,7 @@ public class ShortestPath {
 		_minscore = minscore;
 		_maxscore = maxscore;
 		_avginter = avginter;
-
+		_ccid = ccid;
 	}
 
 	public String getDataset() {
@@ -143,6 +143,10 @@ public class ShortestPath {
 
 	public double getAVGInteractions() {
 		return _avginter;
+	}
+	
+	public int getCCId(){
+		return _ccid;
 	}
 
 }

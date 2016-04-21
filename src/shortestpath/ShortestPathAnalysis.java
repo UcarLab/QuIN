@@ -4,8 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -54,6 +56,7 @@ public class ShortestPathAnalysis {
 			int maxinter = data[i]._maxinter;
 			int nc = ni.getNodeCount();
 			int ec = ni.getEdgeCount();
+			int ccid = ni.getCCId();
 			
 			String dataset = ni.getDataset();
 			String term = ni.getTerm();
@@ -93,7 +96,7 @@ public class ShortestPathAnalysis {
 			}
 			int targettssd = targettssgenes[0].getDistance();
 			
-			shortestpaths.add(new ShortestPath(dataset,term,nchr,ns,ne,termtss,termtssd,hc,distance, tdataset, targetterm,targetchr,targetstart,targetend,targettss,targettssd,avgpet,minpet,maxpet,avginter,mininter,maxinter,nc,ec,path));
+			shortestpaths.add(new ShortestPath(dataset,term,nchr,ns,ne,termtss,termtssd,hc,distance, tdataset, targetterm,targetchr,targetstart,targetend,targettss,targettssd,avgpet,minpet,maxpet,avginter,mininter,maxinter,nc,ec,path, ccid));
 		}
 			
 		
@@ -326,7 +329,7 @@ public class ShortestPathAnalysis {
 			s++;
 		}
 		NARegion[][] rv = new NARegion[s+1][];
-		String sql = "SELECT i.nid, i.term, i.chr, i.start, i.end, c.nodecount, c.edgecount FROM "+indextable+" AS i, "+nodetable+" AS n, "+cctable+" AS c WHERE i.iid = ? AND n.id=i.nid AND n.ccid=c.id AND c.nodecount <= ? AND c.nodecount >= ?";
+		String sql = "SELECT i.nid, i.term, i.chr, i.start, i.end, c.nodecount, c.edgecount, c.id FROM "+indextable+" AS i, "+nodetable+" AS n, "+cctable+" AS c WHERE i.iid = ? AND n.id=i.nid AND n.ccid=c.id AND c.nodecount <= ? AND c.nodecount >= ?";
 
 		PreparedStatement ps = conn.prepareStatement(sql);
 		Util u = new Util();
@@ -338,7 +341,7 @@ public class ShortestPathAnalysis {
 			ResultSet rs = ps.executeQuery();
 			LinkedList<NARegion> l = new LinkedList<NARegion>();
 			while(rs.next()){
-				l.add(new NARegion(dataset, rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7)));
+				l.add(new NARegion(dataset, rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), rs.getInt(8)));
 			}
 			rv[i] = l.toArray(new NARegion[0]);
 			rs.close();
@@ -452,7 +455,7 @@ public class ShortestPathAnalysis {
 						if(!map.containsKey(cid)){
 							map.put(cid, new LinkedList<NARegion>());
 						}
-						map.get(cid).add(new NARegion(cg.getDataset(), cid, cg.getTerm(), cg.getChr(), cg.getStart(), cg.getEnd(), cn.getNodeCount(), cn.getEdgeCount()));
+						map.get(cid).add(new NARegion(cg.getDataset(), cid, cg.getTerm(), cg.getChr(), cg.getStart(), cg.getEnd(), cn.getNodeCount(), cn.getEdgeCount(), cn.getCCId()));
 					}
 					else if(cg.getStart() > cn.getEnd()){
 						break;
@@ -476,7 +479,7 @@ public class ShortestPathAnalysis {
 	private TreeMap<String, LinkedList<CCInfoNode>> getChrStartSortedNodeList(Connection conn, long fid) throws SQLException{
 		String cctable = "chiapet.ConnectedComponents_"+fid;
 
-		String sql = "SELECT n.id, n.chr, n.start, n.end, cc.nodecount, cc.edgecount FROM chiapet.Nodes_"+fid+" AS n, "+cctable+" AS cc WHERE n.ccid = cc.id ORDER BY start ASC";
+		String sql = "SELECT n.id, n.chr, n.start, n.end, cc.nodecount, cc.edgecount, cc.id FROM chiapet.Nodes_"+fid+" AS n, "+cctable+" AS cc WHERE n.ccid = cc.id ORDER BY start ASC";
 		
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ResultSet rs = ps.executeQuery();
@@ -488,13 +491,14 @@ public class ShortestPathAnalysis {
 			int end = rs.getInt(4);
 			int nc = rs.getInt(5);
 			int ec = rs.getInt(6);
-
+			int ccid = rs.getInt(7);
 			
 			if(!sortednodelist.containsKey(chr)){
 				sortednodelist.put(chr, new LinkedList<CCInfoNode>());
 			}
 			
 			CCInfoNode n = new CCInfoNode(id, chr, start, end, new Anchor[0], nc, ec);
+			n.setCCId(ccid);
 			sortednodelist.get(chr).add(n);
 		}
 		
@@ -576,11 +580,13 @@ public class ShortestPathAnalysis {
 		private int _nid;
 		private int _numnodes;
 		private int _numedges;
-		public NARegion(String dataset, int nid, String term, String chr, int start, int end, int numnodes, int numedges) {
+		private int _ccid;
+		public NARegion(String dataset, int nid, String term, String chr, int start, int end, int numnodes, int numedges, int ccid) {
 			super(dataset, term, chr, start, end);
 			_nid = nid;
 			_numnodes = numnodes;
 			_numedges = numedges;
+			_ccid = ccid;
 		}
 
 		public int getNID(){
@@ -595,6 +601,9 @@ public class ShortestPathAnalysis {
 			return _numedges;
 		}
 		
+		public int getCCId(){
+			return _ccid;
+		}
 	}
 	
 	private class NodeToTarget {
@@ -654,5 +663,115 @@ public class ShortestPathAnalysis {
 			return _numedges;
 		}
 		
+	}
+	
+	
+	
+	private Integer[] getRandomIds(TreeMap<Integer, Node> nodeids, int num){
+		
+		Integer[] anid = nodeids.keySet().toArray(new Integer[0]);
+		
+		List<Boolean> shufflelist = new LinkedList<Boolean>();
+		int index = 0;
+		for(int i = 0; i < num; i++){
+			shufflelist.add(true);
+			index++;
+		}
+		for(int i = index; i < nodeids.size(); i++){
+			shufflelist.add(false);
+		}
+		
+		Collections.shuffle(shufflelist);
+		
+		LinkedList<Integer> rv = new LinkedList<Integer>();
+		int i2 = 0;
+		for(Iterator<Boolean> it = shufflelist.iterator(); it.hasNext();){
+			if(it.next()){
+				rv.add(anid[i2]);
+			}
+			i2++;
+		}
+		
+		return rv.toArray(new Integer[0]);
+	}
+	
+	
+	public ShortestPath[] getShortestPathsRandom(Connection conn, long fid, Integer[] indices, Integer[] tindex, int min, int max, boolean sp, boolean tp, String pgenome, int upstream, int downstream) throws SQLException{
+		TreeMap<Integer, Node> nodes = getNodes();
+		
+		
+		Integer[] rnids = getRandomIds(nodes, 35);
+		
+		NARegion[][] nids = new NARegion[1][35]; 
+		for(int i = 0; i < rnids.length; i++){
+			nids[0][i] = new NARegion(null, rnids[i], "", "", 0, 0, 0, 0, 0);
+		}
+		
+		ARegion[][] ngm = getNodeTargetMapping(conn, fid, tindex, (tp ? pgenome : null), upstream, downstream);
+		
+		NodeToTarget[] data = doBFS(nodes, nids, ngm);
+
+		NearestTSSUtil ntss = new NearestTSSUtil(conn, "ucsc.hg19", "geneName", "chrom", "txStart", "txEnd", "strand");
+		
+		LinkedList<ShortestPath> shortestpaths = new LinkedList<ShortestPath>();
+		
+		for(int i = 0; i < data.length; i++){
+			NARegion ni = data[i].getNodeInfo();
+			ARegion gi = data[i].getGeneInfo();
+			String path = data[i].getPath();
+			int hc = data[i].getHopCount();
+			double avgpet = data[i]._avgpet;
+			int minpet = data[i]._minpet;
+			int maxpet = data[i]._maxpet;
+			double avginter = data[i]._avginter;
+			int mininter = data[i]._mininter;
+			int maxinter = data[i]._maxinter;
+			int nc = ni.getNodeCount();
+			int ec = ni.getEdgeCount();
+			int ccid = ni.getCCId();
+			
+			String dataset = ni.getDataset();
+			String term = ni.getTerm();
+			String nchr = ni.getChr();
+			int ns = ni.getStart();
+			int ne = ni.getEnd();
+			
+			String tdataset = gi.getDataset();
+			String targetterm = gi.getTerm();
+			String targetchr = gi.getChr();
+			int targetstart = gi.getStart();
+			int targetend = gi.getEnd();
+
+			int distance = -1;
+			if(nchr.equals(targetchr)){
+				if(ns <= targetend && targetstart <= ne){
+					distance = 0;
+				}
+				else{
+					distance = Math.max(targetstart-ne, ns-targetend);
+				}
+			}
+			
+			//Get term nearest TSS
+			TSSGene[] termtssgenes = ntss.getNearestGene(nchr, ns, ne);
+			String termtss = termtssgenes[0].getGene();
+			for(int ii = 1; ii < termtssgenes.length; ii++){
+				termtss += ","+termtssgenes[ii].getGene();
+			}
+			int termtssd = termtssgenes[0].getDistance();
+			
+			//Get target nearest TSS
+			TSSGene[] targettssgenes = ntss.getNearestGene(targetchr, targetstart, targetend);
+			String targettss = targettssgenes[0].getGene();
+			for(int ii = 1; ii < targettssgenes.length; ii++){
+				targettss += ","+targettssgenes[ii].getGene();
+			}
+			int targettssd = targettssgenes[0].getDistance();
+			
+			shortestpaths.add(new ShortestPath(dataset,term,nchr,ns,ne,termtss,termtssd,hc,distance, tdataset, targetterm,targetchr,targetstart,targetend,targettss,targettssd,avgpet,minpet,maxpet,avginter,mininter,maxinter,nc,ec,path, ccid));
+		}
+			
+		
+		return shortestpaths.toArray(new ShortestPath[0]);
 	}
 }

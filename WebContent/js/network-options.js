@@ -147,6 +147,7 @@ $(function(){
 		$("#tdexport_network").val(ccidata.network);
 		$("#tdexport_minsize").val(ccidata.minsize);
 		$("#tdexport_maxsize").val(ccidata.maxsize);
+		$("#tdexport_supportingedges").val(ccidata.supportingedges);
 		$("#tdexport_s_genes").val(JSON.stringify(ccidata.s_genes));
 		$("#tdexport_s_diseases").val(JSON.stringify(ccidata.s_diseases));
 		$("#tdexport_s_regions").val(JSON.stringify(ccidata.s_regions));

@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 
 import quin.export.ExportMinHopFile;
+import quin.filereader.ChIAPETRead;
+import quin.network.db.query.InteractionQuery;
 import quin.web.UserSession;
 import db.SQLConnectionFactory;
 
@@ -121,9 +123,42 @@ public class ExportMinHopServlet extends HttpServlet{
 		}
 		catch(NumberFormatException e){ }
 		
+		//4-15-2016 New code to visualize supporting edge via data of other networks
+		String[] supportedges = req.getParameter("supportingedges").split(",");
+		ChIAPETRead[][] si = new ChIAPETRead[0][];
+		long[] did = new long[0];
+		String[] sedatasets = new String[0];
+		InteractionQuery iq = new InteractionQuery();
+		if(supportedges != null){
+			si = new ChIAPETRead[supportedges.length][];
+			did = new long[supportedges.length];
+
+			try {
+				for(int i = 0; i < supportedges.length; i++){
+					did[i] = Long.parseLong(supportedges[i]);
+					ChIAPETRead[] interactions = iq.getInteractions(conn, did[i]);
+					si[i] = interactions;
+				}
+				quin.export.Util seu = new quin.export.Util();
+				sedatasets = seu.getSIDataset(conn, did);
+
+			} catch (NumberFormatException e) {
+				si = new ChIAPETRead[0][0];
+				did = new long[0];
+				e.printStackTrace();
+			} catch (SQLException e) {
+				si = new ChIAPETRead[0][0];
+				did = new long[0];
+				e.printStackTrace();
+			}
+		}
+		
+
+
+		
 		ExportMinHopFile export = new ExportMinHopFile();
 		try {
-			export.createMinHopFile(conn, fid, sids, tids, f1.getAbsolutePath(), f2.getAbsolutePath(), zf.getAbsolutePath(), minsize, maxsize, sp, tp, "hg19", 2000, 2000);
+			export.createMinHopFile(conn, fid, sids, tids, f1.getAbsolutePath(), f2.getAbsolutePath(), zf.getAbsolutePath(), minsize, maxsize, sp, tp, "hg19", 2000, 2000, si, sedatasets);
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}

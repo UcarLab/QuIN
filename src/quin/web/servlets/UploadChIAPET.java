@@ -1,18 +1,21 @@
 package quin.web.servlets;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.LinkedList;
 
 import javax.servlet.annotation.MultipartConfig;
 
 import quin.filereader.BEDReader;
 import quin.filereader.ChIAPETFileReader;
 import quin.filereader.ChIAPETRead;
+import quin.filereader.Gene2GeneReader;
 import quin.filereader.TextReader;
 
+
+//TODO refactor this to interaction data
 @MultipartConfig
 public class UploadChIAPET extends AbstractUploadServlet {
 
@@ -31,19 +34,16 @@ public class UploadChIAPET extends AbstractUploadServlet {
 	
 	@Override
 	protected void insertValues(Connection conn, long fid, InputStream is, String filename) throws Exception {
-		ChIAPETFileReader reader = getReader(is, filename);
-		if (reader == null) {
-			throw new Exception("error");
-		}
+		ChIAPETRead[] data = getData(is, filename, conn);
 		String sql = "INSERT INTO chiapetdata.d_" + fid
 				+ " VALUES(?,?,?,?,?,?,?)";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		final int MAXBATCH = 1000;
 
 		int count = 0;
-		while (reader.ready()) {
+		for(int i = 0; i < data.length; i++) {
 			try {
-				ChIAPETRead read = reader.readLine();
+				ChIAPETRead read = data[i];
 
 				ps.setString(1, read.getLChr());
 				ps.setInt(2, read.getLStart());
@@ -68,7 +68,7 @@ public class UploadChIAPET extends AbstractUploadServlet {
 	@Override
 	protected void insertValues(Connection conn, long fid, String[] lines)
 			throws SQLException {
-		//Do nothing.  Not supporting uploading chiapet by line here
+		//Do nothing.  Not supporting uploading interaction data by line here
 	}
 
 	@Override
@@ -81,14 +81,43 @@ public class UploadChIAPET extends AbstractUploadServlet {
 		ps.close();		
 	}
 
-	private ChIAPETFileReader getReader(InputStream istream, String filename)
-			throws IOException {
+	private ChIAPETRead[] getData(InputStream istream, String filename, Connection conn)
+			throws Exception {
+		ChIAPETFileReader r = null;
 		if (filename != null && filename.endsWith(".bed")) {
-			return new BEDReader(istream);
-		} else if (filename != null && filename.endsWith(".txt")) {
-			return new TextReader(istream);
-		} else {
-			return null;
+			r = new BEDReader(istream);
 		}
+		else if(filename != null && filename.endsWith(".ggi.txt")){
+			Gene2GeneReader gr = new Gene2GeneReader(istream, conn);
+			LinkedList<ChIAPETRead> rv = new LinkedList<ChIAPETRead>();
+			while(gr.ready()){
+				LinkedList<ChIAPETRead> rl = gr.readLine();
+				if(rl != null){
+					rv.addAll(rl);
+				}
+			}
+			gr.close();
+			return rv.toArray(new ChIAPETRead[0]);
+		}
+		else if (filename != null && filename.endsWith(".txt")) {
+			r =  new TextReader(istream);
+		}
+		else{
+			r = null;
+		}
+		
+		LinkedList<ChIAPETRead> rv = new LinkedList<ChIAPETRead>();
+		
+		if(r == null){
+				throw new Exception("error");
+		}
+		else{
+			while (r.ready()) {
+				rv.add(r.readLine());
+			}
+		}
+		r.close();
+		return rv.toArray(new ChIAPETRead[0]);
 	}
+	
 }

@@ -300,6 +300,7 @@
 										<div class="inputform">Min: <input type="text" name="e_size1" id="e_size1" value="2" size="4"/> Max:<input type="text" name="e_size2" id="e_size2" value="" size="4"/></div>
 									</div>
 									
+									<br />
 									<div class="inputelements">
 										<div class="inputname">Node Annotations:</div>
 										<div class="inputform">
@@ -319,6 +320,29 @@
 												<a href="javascript:addSuperImposedSet()" style="display: block; text-align: right;">Add Annotation</a>
 											</div>																		
 										</div>
+										
+										<br />
+										<div class="inputname">Supporting Interactions:</div>
+										<div class="inputform">
+											<div id="e_sedges">
+												<div class="e_sedgeselement" style="display: inline-block;">
+													<div style="width: 80%; float: left;">
+														<select class="e_se uiselect" style="width:100%;">
+															<option value="-1">None</option>										
+														</select>
+													</div>
+													<div style="width: 20%; display: block; text-align: right; float: right;" class="e_sedgescolordiv">
+														<input type="text" class="e_sedgescolor" />
+													</div>
+												</div>
+											</div>
+											<div>
+												<a href="javascript:addESE()" style="display: block; text-align: right;">Add Supporting Interaction</a>
+											</div>																		
+										</div>
+										
+										<br />
+										
 										<div class="inputname"><label for="annotatedonly">View Only Annotated Components: <input type="checkbox" name="annotatedonly" id="annotatedonly" value="true" checked="checked" /></label></div>
 										<div class="inputname">Sort Components By:</div>
 										<div class="inputform">
@@ -329,6 +353,7 @@
 											</select>
 										</div>
 									</div>
+									
 									<div class="buttondiv"><button id="loaddata">Reload Data</button>&nbsp;<button id="view">View</button></div>
 								</form>
 							</div>
@@ -392,7 +417,28 @@
 												<a href="javascript:addTDTarget()" style="display: block; text-align: right;">Add Target</a>
 											</div>																		
 										</div>
+										
+										<br />
+										<div class="inputname">Supporting Interactions:</div>
+										<div class="inputform">
+											<div id="td_sedges">
+												<div class="td_sedgeselement" style="display: inline-block;">
+													<div style="width: 80%; float: left;">
+														<select class="td_se uiselect" style="width:100%;">
+															<option value="-1">None</option>										
+														</select>
+													</div>
+													<div style="width: 20%; display: block; text-align: right; float: right;" class="td_secolordiv">
+														<input type="text" class="td_secolor" />
+													</div>
+												</div>
+											</div>
+											<div>
+												<a href="javascript:addTDSE()" style="display: block; text-align: right;">Add Supporting Interactions</a>
+											</div>																		
+										</div>
 									</div>
+									
 									<div class="buttondiv"><button id="td_loaddata">Reload Data</button>&nbsp;<button id="td_view">View</button></div>
 								</form>
 								<form method="post" action="exportminhop" id="tdexportform">
@@ -409,6 +455,7 @@
 									<input type="hidden" name="tp" id="tdexport_tp" value="-1">	
 									<input type="hidden" name="minsize" id="tdexport_minsize" value="">
 									<input type="hidden" name="maxsize" id="tdexport_maxsize" value="">
+									<input type="hidden" name="supportingedges" id="tdexport_supportingedges" value="">
 									<div class="buttondiv"><button id="tdexport">Export</button></div>
 								</form>
 							</div>
