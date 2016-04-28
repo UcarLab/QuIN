@@ -39,7 +39,7 @@ public class Gene2GeneReader {
 			//TODO get locations by adding 2kb for each TSS;
 			
 			if(split.length < 2){
-				return null;
+				return new LinkedList<ChIAPETRead>();
 			}
 			
 			TSS[] g1 = _nutil.getTSS(split[0]);

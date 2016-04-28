@@ -28,7 +28,7 @@ function setCC(ccid, callback){
 			networkdata = data;
 			vnetworkdata = networkdata;
 			gene2go = null;
-			visualizeNetwork(getCytoscapeNetwork(networkdata, true), callback);
+			visualizeNetwork('network', getCytoscapeNetwork(networkdata, true), callback);
 			$("#componentinfo").empty();
 			$("#componentinfo").append("<div>Nodes:"+networkdata.nodes.length+"</div>");
 			$("#componentinfo").append("<div>Edges:"+networkdata.edges.length+"</div>");
@@ -258,8 +258,8 @@ getCytoscapeNetwork = function(data, merge, parent, nids) {
 	};
 };
 
-function visualizeNetwork(ndata, callback){
-	$("#network").empty();
+function visualizeNetwork(ui, ndata, callback){
+	$('#'+ui).empty();
 	  var nodescss = {
 		        'content': 'data(label)',
 		        'background-color': 'data(bgcolor)',
@@ -283,7 +283,7 @@ function visualizeNetwork(ndata, callback){
 	}	  
 	  
 	var cy = cytoscape({
-		  container: document.getElementById('network'),
+		  container: document.getElementById(ui),
 		
 		  style: [
 		    {
@@ -384,6 +384,11 @@ function setLegend(ui, siindex){
 	}
 	for(var i = 0; i < pcolorindex.length; i++){
 		$(ui).append('<div class="legendelement"><div class="legendcolorcontainter"><div class="legendcolor" style="background: '+pcolorindex[i]+';"></div></div><div class="legendlabel">Promoters (2KB From TSS)</div></div>');
+	}
+	
+	//TODO supporting interaction information
+	for(var i = 0; i < secolorindex.length; i++){
+		$(ui).append('<div class="legendelement"><div class="legendcolorcontainter"><hr class="legendline" style="color: '+secolorindex[i]+';" /></div><div class="legendlabel">'+selabels[i]+'</div></div>');
 	}
 }
 

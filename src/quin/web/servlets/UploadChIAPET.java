@@ -28,13 +28,13 @@ public class UploadChIAPET extends AbstractUploadServlet {
 		_dataschema = "chiapetdata";
 		_sessionschema = "usersessions";
 		_sessiontable = "ChiapetData";
-		_validextensions = new String[]{".txt", ".bed"};
+		_validextensions = new String[]{".txt", ".tsv", ".bed"};
 		_allowlist = false;
 	}
 	
 	@Override
 	protected void insertValues(Connection conn, long fid, InputStream is, String filename) throws Exception {
-		ChIAPETRead[] data = getData(is, filename, conn);
+		ChIAPETRead[] data = getData(is, filename, _req.getParameter("type"), conn);
 		String sql = "INSERT INTO chiapetdata.d_" + fid
 				+ " VALUES(?,?,?,?,?,?,?)";
 		PreparedStatement ps = conn.prepareStatement(sql);
@@ -81,13 +81,10 @@ public class UploadChIAPET extends AbstractUploadServlet {
 		ps.close();		
 	}
 
-	private ChIAPETRead[] getData(InputStream istream, String filename, Connection conn)
+	private ChIAPETRead[] getData(InputStream istream, String filename, String type, Connection conn)
 			throws Exception {
-		ChIAPETFileReader r = null;
-		if (filename != null && filename.endsWith(".bed")) {
-			r = new BEDReader(istream);
-		}
-		else if(filename != null && filename.endsWith(".ggi.txt")){
+		
+		if(type != null && type.equals("g2g")){
 			Gene2GeneReader gr = new Gene2GeneReader(istream, conn);
 			LinkedList<ChIAPETRead> rv = new LinkedList<ChIAPETRead>();
 			while(gr.ready()){
@@ -99,7 +96,12 @@ public class UploadChIAPET extends AbstractUploadServlet {
 			gr.close();
 			return rv.toArray(new ChIAPETRead[0]);
 		}
-		else if (filename != null && filename.endsWith(".txt")) {
+		
+		ChIAPETFileReader r = null;
+		if (filename != null && filename.endsWith(".bed")) {
+			r = new BEDReader(istream);
+		}
+		else if (filename != null && (filename.endsWith(".txt") || filename.endsWith(".tsv"))) {
 			r =  new TextReader(istream);
 		}
 		else{

@@ -32,10 +32,19 @@
 							<div class="inputs">
 								<div class="description">
 									Upload BED (.bed) files (Duplicate inter-chromosome entries at the beginning of the file and description matching &quot;chr1:1000..2000-chr2:1000..2000,2&quot; where the last number is the PET count/score) or seven column tab delimited (.txt) files (chr start end chr start end, pet count/score).
+									<br /><br />
+									<b>New:</b>  Upload a two column tab delimited text file, where each row contains two gene symbols.
 								</div>
 								<br />
 								<div>
 									<form id="uploadchiapetform" onsubmit="return false;">
+										<div class="inputelement">
+											<div class="inputname">Data Type:</div>
+											<div class="inputform">
+												<label for="u_chiapet_type_chromatin"><input type="radio" checked="checked" name="type" id="u_chiapet_type_chromatin" value="chromatin"/> Chromatin Interactions</label><br />
+												<label for="u_chiapet_type_gene"><input type="radio" name="type" id="u_chiapet_type_gene" value="g2g"/> Pairs of Genes/Promoters</label><br />
+											</div>
+										</div>
 										<div class="inputelement">
 											<div class="inputname">File:</div>
 											<div class="inputform"><input type="file" name="u_chiapet" id="u_chiapet"/></div>
@@ -524,6 +533,7 @@
 											<div id="networkoptions">
 												<div>
 													<div id="cclinks">&nbsp;</div>
+													<div style="float: left;"><button id="selectall">Select All</button> <button id="selectneighbors">Select Neighbors</button> <button id="exportselected">View/Export Selection</button></div>
 													<div style="text-align: right;"><b>Component:</b> <input type="text" id="gotocc" size="6" /><button id="gotoccb">Go</button>&nbsp;</div>
 												</div>
 												<div id="optionpanel" class="ui-corner-top ui-corner-bottom">
@@ -875,6 +885,30 @@
 						<button id="export">Export</button>
 					</div>
 				</form>
+			</div>
+		</div>
+		
+		<div id="exportselectdialog" title="View/Export Selection">
+			<div id="exportselecttabs">
+				<ul>
+					<li><a href="#stabs-1"><b>Selected Network</b></a></li>
+					<li><a href="#stabs-2"><b>Genes</b></a></li>
+					<li><a href="#stabs-3"><b>Node Locations</b></a></li>
+					<li><a href="#stabs-4"><b>Edges</b></a></li>
+				</ul>
+				<div id="stabs-1">
+					<div id="subnetwork"></div>
+					<div style="text-align: right"><button id="subnetworkimage">Save Network Image</button></div>
+				</div>
+				<div id="stabs-2">
+					<textarea readonly id="sgene" class="selectexport"></textarea>
+				</div>
+				<div id="stabs-3">
+					<textarea readonly id="snode" class="selectexport"></textarea>
+				</div>
+				<div id="stabs-4">
+					<textarea readonly id="sedges" class="selectexport" style="width: 700px;"></textarea>
+				</div>
 			</div>
 		</div>
 		

@@ -216,10 +216,10 @@ $(function(){
 	$("#permutetest").hide();
 	$("#ttest").click(function(){
 		$("#permutetest").hide();
-	})
+	});
 	$("#ptest").click(function(){
 		$("#permutetest").show();
-	})
+	});
 
 	
 	$("#gotoccb").button();
@@ -228,7 +228,116 @@ $(function(){
 		if(!isNaN(cc)){
 			setCC(cc-1);
 		}
-	})
+	});
+	
+	$("#selectall").button();
+	$("#selectall").click(function(){
+		var cy = $('#network').cytoscape('get');
+		var nodes = cy.nodes();
+		nodes.select();
+	});
+	
+	
+	
+	$("#selectneighbors").button();
+	$("#selectneighbors").click(function(){
+		var cy = $('#network').cytoscape('get');
+		cy.$(':selected').neighborhood().select();
+	});
+	
+	$("#exportselected").button();
+	$("#exportselected").click(function(){
+		$("#exportselectdialog").dialog("open");
+		var cy = $('#network').cytoscape('get');
+		var cynodes = cy.nodes();
+		var cyedges = cy.edges();
+		
+		$("#snode").empty();
+		$("#sgene").empty();
+		$("#sedges").empty();
+
+		var nodes = vnetworkdata.nodes;
+		var selnids = [];
+		var genesincluded = [];
+		var subnetworknodes = [];
+		var subnetworkedges = [];
+		var subnetworksedges = [];
+
+		for(var i = 0; i < cynodes.length; i++){
+			if(cynodes[i].selected()){
+				var nid = cynodes[i].id().split("_")[1];
+				var id = getIndex(nodes, nid);
+				selnids.push(id);
+				var node = nodes[id];
+				$("#snode").append(node.chr+"\t"+node.start+"\t"+node.end+"\n")
+				var genes = node.genesymbols;
+				for(var j = 0; j < genes.length; j++){
+					if(genesincluded.indexOf(genes[j]) == -1){
+						$("#sgene").append(genes[j]+"\n");
+						genesincluded.push(genes[j]);
+					}
+				}
+				subnetworknodes.push(node);
+			}
+		}
+		
+		var edges = vnetworkdata.edges;
+		for(var i = 0; i < edges.length; i++){
+			var n1id = getIndex(nodes, edges[i].node1);
+			var n2id = getIndex(nodes, edges[i].node2);
+			if(selnids.indexOf(n1id) != -1 && selnids.indexOf(n2id) != -1){
+				var n1 = nodes[n1id];
+				var n2 = nodes[n2id];
+				$("#sedges").append(n1.chr+"\t"+n1.start+"\t"+n1.end+"\t"+n2.chr+"\t"+n2.start+"\t"+n2.end+"\t"+edges[i].petcount+"\n");
+				subnetworkedges.push(edges[i]);
+			}
+		}
+		
+		var sedges = vnetworkdata.supportingedges;
+		for(var i = 0; i < sedges.length; i++){
+			subnetworksedges[i] = [];
+		}
+		for(var i = 0; i < sedges.length; i++){
+			for(var j = 0; j < sedges[i].length; j++){
+				var n1id = getIndex(nodes, sedges[i][j].node1);
+				var n2id = getIndex(nodes, sedges[i][j].node2);
+				if(selnids.indexOf(n1id) != -1 && selnids.indexOf(n2id) != -1){
+					subnetworksedges[i].push(sedges[i][j]);
+				}
+			}
+		}
+		
+		
+		var subnetwork = {nodes: subnetworknodes, edges: subnetworkedges, supportingedges: subnetworksedges };
+		
+		visualizeNetwork('subnetwork', getCytoscapeNetwork(subnetwork, true));
+	});
+	
+	$("#exportselecttabs").tabs({
+		activate: function(){
+			$("#subnetwork").cytoscape('get').resize();
+		}
+	});
+	
+	$("#exportselectdialog").dialog({
+		width: 800,
+		height: 650,
+		autoOpen: false,
+		modal: true,
+		resizable: false,
+		dragStop: function(){
+			$("#subnetwork").cytoscape('get').resize();
+		}
+	});
+	$("#exportselectdialog").parent().find(".ui-dialog-titlebar-close").css("display", "inline");
+
+	$("#subnetworkimage").button();
+	$("#subnetworkimage").click(function(){
+		var cy = $('#subnetwork').cytoscape('get');
+		var imgdata = cy.png({scale: 10});
+		$("#exportimage-image").attr('src', imgdata);
+		$("#exportimagedialog").dialog("open");
+	});
 });
 
 var setNodeLabels = function(){
@@ -426,7 +535,7 @@ function groupNodes(goid, index){
 			}
 		}
 	}
-	visualizeNetwork(getCytoscapeNetwork(networkdata, true, goid, nodeids));
+	visualizeNetwork('network', getCytoscapeNetwork(networkdata, true, goid, nodeids));
 
 }
 

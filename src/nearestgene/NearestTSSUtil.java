@@ -15,7 +15,7 @@ public class NearestTSSUtil {
 	private TreeMap<String, LinkedList<TSS>> _genetss;
 
 	public NearestTSSUtil(Connection conn, String database, String genecol, String chrcol, String startcol, String endcol, String strandcol) throws SQLException{
-		String startsortedsql = "SELECT g."+genecol+", g."+chrcol+", CASE g."+strandcol+" WHEN '-' THEN g."+endcol+" ELSE g."+startcol+" END AS TSS FROM "+database+" AS g ORDER BY tss ASC";
+		String startsortedsql = "SELECT g."+genecol+", g."+chrcol+", CASE g."+strandcol+" WHEN '-' THEN g."+endcol+" ELSE g."+startcol+" END AS TSS, g."+strandcol+" FROM "+database+" AS g ORDER BY tss ASC";
 		PreparedStatement ps = conn.prepareStatement(startsortedsql);
 		ResultSet rs = ps.executeQuery();
 		
@@ -26,11 +26,11 @@ public class NearestTSSUtil {
 			if(!map.containsKey(chr)){
 				map.put(chr, new LinkedList<TSS>());
 			}
-			map.get(chr).add(new TSS(rs.getString(1), rs.getString(2), rs.getInt(3)));
+			map.get(chr).add(new TSS(rs.getString(1), rs.getString(2), rs.getInt(3), rs.getString(4)));
 			if(!_genetss.containsKey(rs.getString(1).toLowerCase())){
 				_genetss.put(rs.getString(1).toLowerCase(), new LinkedList<TSS>());
 			}
-			_genetss.get(rs.getString(1).toLowerCase()).add(new TSS(rs.getString(1), rs.getString(2), rs.getInt(3)));
+			_genetss.get(rs.getString(1).toLowerCase()).add(new TSS(rs.getString(1), rs.getString(2), rs.getInt(3), rs.getString(4)));
 		}
 		rs.close();
 		ps.close();
@@ -43,6 +43,9 @@ public class NearestTSSUtil {
 	}
 	
 	public TSS[] getTSS(String gene){
+		if(!_genetss.containsKey(gene.toLowerCase())){
+			return new TSS[0];
+		}
 		return _genetss.get(gene.toLowerCase()).toArray(new TSS[0]);
 	}
 	

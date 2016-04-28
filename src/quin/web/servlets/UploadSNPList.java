@@ -21,7 +21,7 @@ public class UploadSNPList extends AbstractUploadServlet{
 		_dataschema = "snplists";
 		_sessionschema = "usersessions";
 		_sessiontable = "SNPLists";
-		_validextensions = new String[]{".txt"};
+		_validextensions = new String[]{".txt", ".tsv"};
 	}
 	
 	@Override

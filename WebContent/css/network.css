@@ -19,6 +19,13 @@
 	border-width: 1px;
 }
 
+#subnetwork {
+	width: 100%;
+	height: 500px;
+	border-style: solid;
+	border-width: 1px;
+}
+
 #npanelspace {
 	width: 10px;
 	display: table-cell;
@@ -53,6 +60,13 @@
 #legend {
 	display: table;
 	margin-left: 10px;
+}
+
+.legendline {
+	width: 15px;
+	border: 0px;
+	border-top: 1px dashed;
+	height: 1px;
 }
 
 .legendelement {

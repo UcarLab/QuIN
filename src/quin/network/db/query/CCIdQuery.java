@@ -4,7 +4,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.TreeSet;
+
+import quin.network.Anchor;
+import quin.network.Node;
+import nearestgene.NearestTSSUtil;
+import nearestgene.TSS;
+import nearestgene.TSSGene;
 
 public class CCIdQuery {
 
@@ -83,10 +91,7 @@ public class CCIdQuery {
 			orderby = "edgecount";
 		}
 	
-		String sql = "SELECT DISTINCT n.ccid FROM chiapet.Nodes_"+fid+" AS n, ucsc.hg19 AS g, chiapet.ConnectedComponents_"+fid+" as cc WHERE cc.nodecount <= ? AND cc.nodecount >= ? AND cc.id = n.ccid AND "
-				+ "g.chrom=n.chr AND "
-				+"((n.start <= g.txstart+"+upstream+" AND g.txstart-"+downstream+" <= n.end AND g.strand='+')"
-				+"|| (n.start <= g.txend+"+downstream+" AND g.txend-"+upstream+" <= n.end AND g.strand='-'))  ORDER BY "+orderby+" DESC";
+		String sql = "SELECT DISTINCT n.chr, n.start, n.end, n.ccid FROM chiapet.Nodes_"+fid+" AS n, chiapet.ConnectedComponents_"+fid+" as cc WHERE cc.nodecount <= ? AND cc.nodecount >= ? AND cc.id = n.ccid ORDER BY "+orderby+" DESC";
 		
 		ps = conn.prepareStatement(sql);
 		
@@ -94,12 +99,53 @@ public class CCIdQuery {
 		ps.setInt(2, minsize);
 
 		ResultSet rs = ps.executeQuery();
-		LinkedList<Integer> l = new LinkedList<Integer>();
+		LinkedList<Node> l = new LinkedList<Node>();
 		while(rs.next()){
-			l.add(rs.getInt(1));
+			Node n = new Node(0, rs.getString(1), rs.getInt(2), rs.getInt(3), new Anchor[0]);
+			n.setCCId(rs.getInt(4));
+			l.add(n);
 		}
 		
-		return l.toArray(new Integer[0]);
+		NearestTSSUtil nu = new NearestTSSUtil(conn, "ucsc.hg19", "geneName", "chrom", "txStart", "txEnd", "strand");
+		
+		TreeSet<Integer> rv = new TreeSet<Integer>();
+		
+		for(Iterator<Node> it = l.iterator(); it.hasNext();){
+			Node next = it.next();
+			if(inTSS(nu, upstream, downstream, next.getChr(), next.getStart(), next.getEnd())){
+				rv.add(next.getCCId());
+			}
+		}
+		
+		return rv.toArray(new Integer[0]);
+	}
+	
+	private boolean inTSS(NearestTSSUtil nu, int upstream, int downstream, String chr, int start, int end){
+		TSSGene[] genes = nu.getNearestGene(chr, start, end);
+		for(int i = 0; i < genes.length; i++){
+			TSSGene cg = genes[i];
+			TSS[] tss = nu.getTSS(cg.getGene());
+			
+			for(int j = 0; j < tss.length; j++){
+				TSS ctss = tss[j];
+				int gs, ge;
+				if(ctss.strand.equals("+")){
+					gs = ctss.tss-upstream;
+					ge = ctss.tss+downstream;
+				}
+				else{
+					gs = ctss.tss-downstream;
+					ge = ctss.tss+upstream;
+				}
+				
+				if(end >= gs && start <= ge){
+					return true;
+				}
+			}
+
+		}
+		
+		return false;
 	}
 	
 }

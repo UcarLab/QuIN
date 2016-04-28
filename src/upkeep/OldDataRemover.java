@@ -12,7 +12,6 @@ import db.SQLConnectionFactory;
 public class OldDataRemover implements Runnable{
 	
 	
-	
 	public void run(){
 		Connection conn = SQLConnectionFactory.getConnection();
 		try {

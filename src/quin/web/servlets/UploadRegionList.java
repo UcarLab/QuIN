@@ -21,7 +21,7 @@ public class UploadRegionList extends AbstractUploadServlet {
 		_dataschema = "regionlists";
 		_sessionschema = "usersessions";
 		_sessiontable = "RegionLists";
-		_validextensions = new String[]{".txt", ".bed"};
+		_validextensions = new String[]{".txt", ".tsv", ".bed"};
 	}
 	
 	@Override

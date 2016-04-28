@@ -152,6 +152,7 @@ public abstract class AbstractUploadServlet extends HttpServlet {
 				e1.printStackTrace();
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			util.setResponse(resp, "Error: An unexpected error occurred.");
 			try {
 				uu.dropAndRemove(conn, uid, fid, _dataschema,

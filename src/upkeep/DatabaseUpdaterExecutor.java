@@ -21,5 +21,4 @@ public class DatabaseUpdaterExecutor implements ServletContextListener{
 		
 	}
 
-
 }

@@ -21,7 +21,7 @@ public class UploadGeneList extends AbstractUploadServlet{
 		_dataschema = "genelists";
 		_sessionschema = "usersessions";
 		_sessiontable = "GeneLists";
-		_validextensions = new String[]{".txt"};
+		_validextensions = new String[]{".txt", ".tsv"};
 	}
 	
 	@Override

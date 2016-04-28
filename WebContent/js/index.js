@@ -9,6 +9,7 @@ var colors = ["#0099ff", "#ff0000", "#00cc00", "#ffcc00", "#663399",
 var colorindex = [];
 var pcolorindex = [];
 var secolorindex = [];
+var selabels = [];
 
 $(function(){	
 	$(".ureset, .uupload, #u_progressclose, #b_progressclose, #resetbuild, #build, #resetview, #view, #merge, #resetmerge, #loaddata, #exportca, #exportna, #tdexport, #td_loaddata, #td_view, #loadnm, #loadaieh").button();
@@ -280,6 +281,8 @@ function uploadChIAPETData(){
 	data.append('name', $('#u_chiapetlabel').val());
 	data.append('file', $('#u_chiapet')[0].files[0]);
 
+	data.append('type', $("#u_chiapet_type_gene").prop("checked") ? "g2g" :"");
+	
 	uploadAjax("uploadchiapet", data);
 }
 
@@ -450,13 +453,19 @@ function viewNetwork(){
 	
 	
 	//add supporting interactions
+	var sil = [];
 	var si = [];
 	var sic = []
 	$(".e_sedgeselement").each(function(){
-		si.push($(this).find(".e_se").val());
-		sic.push($(this).find(".e_sedgescolor").spectrum("get").toString());
+		var seval = $(this).find(".e_se").val()
+		if(seval != -1){
+			sil.push($(this).find(".e_se option:selected").text());
+			si.push(seval);
+			sic.push($(this).find(".e_sedgescolor").spectrum("get").toString());
+		}
 	});
 	secolorindex = sic;
+	selabels = sil;
 	
 	var idata = {
 		network: network,
@@ -653,12 +662,18 @@ function getTDCCIDData(){
 	pcolorindex = pci;
 	
 	//add supporting interactions
+	var sil = [];
 	var si = [];
 	var sic = []
 	$(".td_sedgeselement").each(function(){
-		si.push($(this).find(".td_se").val());
-		sic.push($(this).find(".td_secolor").spectrum("get").toString());
+		var seval = $(this).find(".td_se").val();
+		if(seval != -1){
+			sil.push($(this).find(".td_se option:selected").text());
+			si.push(seval);
+			sic.push($(this).find(".td_secolor").spectrum("get").toString());
+		}
 	});
+	selabels = sil;
 	secolorindex = sic;
 	
 	var idata = {

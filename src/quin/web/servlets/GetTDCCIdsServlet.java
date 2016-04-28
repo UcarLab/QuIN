@@ -133,8 +133,14 @@ public class GetTDCCIdsServlet extends HttpServlet{
 			if(sp || tp){
 				p_ccids = ccidq.getPromoterCCIds(conn, "chiapet", fid, 0, maxsize, minsize, false, 2000, 2000);
 			}
-			Integer[] s_ccids = ccidq.getCCIds(conn, "chiapet", fid, s_sids, 0, maxsize, minsize, false);
-			Integer[] t_ccids = ccidq.getCCIds(conn, "chiapet", fid, t_sids, 0, maxsize, minsize, false);
+			Integer[] s_ccids = new Integer[0];
+			if(s_sids.length > 0){
+				s_ccids = ccidq.getCCIds(conn, "chiapet", fid, s_sids, 0, maxsize, minsize, false);
+			}
+			Integer[] t_ccids = new Integer[0];
+			if(t_sids.length > 0){
+				t_ccids = ccidq.getCCIds(conn, "chiapet", fid, t_sids, 0, maxsize, minsize, false);
+			}
 
 			TreeSet<Integer> sourceset = new TreeSet<Integer>();
 			for(int i = 0; i < s_ccids.length; i++){

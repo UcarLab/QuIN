@@ -22,7 +22,7 @@ public class UploadEdgeAnnotation extends AbstractUploadServlet {
 		_dataschema = "edgeannotationlists";
 		_sessionschema = "usersessions";
 		_sessiontable = "EdgeAnnotationLists";
-		_validextensions = new String[]{".txt"};
+		_validextensions = new String[]{".txt", ".tsv"};
 	}
 	
 	@Override

@@ -21,7 +21,7 @@ public class UploadDiseaseList extends AbstractUploadServlet {
 		_dataschema = "diseaselists";
 		_sessionschema = "usersessions";
 		_sessiontable = "DiseaseLists";
-		_validextensions = new String[]{".txt"};
+		_validextensions = new String[]{".txt", ".tsv"};
 	}
 	
 	@Override
