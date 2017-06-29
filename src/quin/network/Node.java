@@ -1,8 +1,13 @@
 package quin.network;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Set;
 
-public class Node extends Location{
+import edu.ohsu.graphlet.core.HasGraphletSignature;
+
+public class Node extends Location implements edu.ohsu.graphlet.core.Node {
 
 	private Anchor[] _pairedends;
 	private LinkedList<Edge> _edges;
@@ -126,6 +131,52 @@ public class Node extends Location{
 			return 1d;
 		}
 		return d;
+	}
+
+	
+	
+	@Override
+	public int[] getCounts() {
+		return null;
+	}
+
+	@Override
+	public double[] getWeightedCounts() {
+		return null;
+	}
+
+	@Override
+	public void setCounts(int[] arg0) {
+		
+	}
+
+	@Override
+	public int compareTo(HasGraphletSignature o) {
+		//implementing this for the set function getNeighbors
+		return getId().compareTo(o.getId());
+	}
+
+	@Override
+	public void addNeighbor(edu.ohsu.graphlet.core.Node arg0) {
+		return;
+	}
+
+	@Override
+	public String getId() {
+		return Integer.toString(getIntegerId());
+	}
+
+	@Override
+	public Set<edu.ohsu.graphlet.core.Node> getNeighbors() {
+		Set<edu.ohsu.graphlet.core.Node> rv = new HashSet<edu.ohsu.graphlet.core.Node>(_edges.size());
+		for(Iterator<Edge> it = _edges.iterator(); it.hasNext();){
+			rv.add(it.next().getAdjacentNode(this));
+		}
+		return rv;
+	}
+
+	@Override
+	public void removeEdge(edu.ohsu.graphlet.core.Node arg0) {
 	}
 	
 }

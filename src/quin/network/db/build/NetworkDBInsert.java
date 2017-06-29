@@ -171,8 +171,8 @@ public class NetworkDBInsert {
 				
 				edgeps.setInt(1, e.getId());		//Edge ID
 				edgeps.setInt(2, ccid);				//CCID
-				edgeps.setInt(3, n1.getId());	//N1 ID
-				edgeps.setInt(4, n2.getId());		//N2 ID		
+				edgeps.setInt(3, n1.getIntegerId());	//N1 ID
+				edgeps.setInt(4, n2.getIntegerId());		//N2 ID		
 				edgeps.setInt(5, e.getPETCount());	//PET Count
 				edgeps.setInt(6, e.getInteractionCount());	//PET Count
 
@@ -199,7 +199,7 @@ public class NetworkDBInsert {
 			for(int j = 0; j < nodes.length; j++){
 				Node n = nodes[j];
 				
-				nodeps.setInt(1, n.getId());		//Node ID
+				nodeps.setInt(1, n.getIntegerId());		//Node ID
 				nodeps.setInt(2, ccid);				//CCID
 				nodeps.setString(3, n.getChr());	//Chr
 				nodeps.setInt(4, n.getStart());		//Start
@@ -238,7 +238,7 @@ public class NetworkDBInsert {
 			Anchor pe2 = pes[1];
 			
 			//PE1
-			ps.setInt(1, pe1.getId());		//PET ID
+			ps.setInt(1, pe1.getIntegerId());		//PET ID
 			ps.setInt(2, ci.getId());		//Interaction ID
 			ps.setString(3, pe1.getChr());		//Chr
 			ps.setInt(4, pe1.getStart());		//Start
@@ -248,7 +248,7 @@ public class NetworkDBInsert {
 				ps.setNull(7, java.sql.Types.INTEGER);		//Node ID
 			}
 			else{
-				ps.setInt(7, pe1.getNode().getId());		//Node ID
+				ps.setInt(7, pe1.getNode().getIntegerId());		//Node ID
 			}
 			
 			if(e == null){
@@ -262,7 +262,7 @@ public class NetworkDBInsert {
 			ps.addBatch();
 			
 			//PE2
-			ps.setInt(1, pe2.getId());		//PET ID
+			ps.setInt(1, pe2.getIntegerId());		//PET ID
 			ps.setInt(2, ci.getId());		//Interaction ID
 			ps.setString(3, pe2.getChr());		//Chr
 			ps.setInt(4, pe2.getStart());		//Start
@@ -272,7 +272,7 @@ public class NetworkDBInsert {
 				ps.setNull(7, java.sql.Types.INTEGER);		//Node ID
 			}
 			else{
-				ps.setInt(7, pe2.getNode().getId());		//Node ID
+				ps.setInt(7, pe2.getNode().getIntegerId());		//Node ID
 			}
 			
 			if(e == null){

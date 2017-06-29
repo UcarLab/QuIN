@@ -89,14 +89,16 @@ public class AIEHeatmapServlet extends HttpServlet{
 		
 		int numpermutes = -1;
 		String testtype = req.getParameter("testtype");
-		if(testtype.equalsIgnoreCase("p")){
+		if(testtype.equalsIgnoreCase("p") || testtype.equalsIgnoreCase("it")){
 			String numpermutess = req.getParameter("permutations");
 			try {
 				numpermutes = Integer.parseInt(numpermutess);
 				if(numpermutes < 1){
 					numpermutes = 1000;
 				}
-				numpermutes = Math.min(numpermutes, 100000);
+				if(testtype.equalsIgnoreCase("p")){
+					numpermutes = Math.min(numpermutes, 100000);
+				}
 			}
 			catch(NumberFormatException e){
 				
@@ -125,7 +127,7 @@ public class AIEHeatmapServlet extends HttpServlet{
 		AIEJson heatmap = null;
 		AnnotationInteractionEnrichment sph = new AnnotationInteractionEnrichment();
 		try {
-			heatmap = sph.generateHeatmap(conn, fid, sids, minsize, maxsize, numpermutes);
+			heatmap = sph.generateHeatmap(conn, fid, sids, minsize, maxsize, testtype, numpermutes);
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		} catch (REngineException e) {

@@ -37,7 +37,7 @@ public class CommunityStructure {
 		Node[] nodes = c.getNodes();
 		int rv = 0;
 		for(int i = 0; i < nodes.length; i++){
-			rv = Math.max(nodes[i].getId(), rv);
+			rv = Math.max(nodes[i].getIntegerId(), rv);
 		}
 		return rv;
 	}
@@ -157,8 +157,8 @@ public class CommunityStructure {
 		double[][] rv = new double[numnodes][numnodes];
 		for(int i = 0; i < edges.length; i++){
 			Node[] nodes = edges[i].getNodes();
-			int n1 = nodeindex[nodes[0].getId()];
-			int n2 = nodeindex[nodes[1].getId()];
+			int n1 = nodeindex[nodes[0].getIntegerId()];
+			int n2 = nodeindex[nodes[1].getIntegerId()];
 			int petcount = edges[i].getPETCount();
 			rv[n1][n2] += petcount;
 			rv[n2][n1] += petcount;
@@ -194,7 +194,7 @@ public class CommunityStructure {
 	private int[] getNodeIndex(int maxid, Node[] nodes){
 		int[] rv = new int[maxid+1];
 		for(int i = 0; i < nodes.length; i++){
-			rv[nodes[i].getId()] = i;
+			rv[nodes[i].getIntegerId()] = i;
 		}
 		return rv;
 	}

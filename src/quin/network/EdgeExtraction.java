@@ -19,7 +19,7 @@ public class EdgeExtraction {
 
 			Node n1 = pe[0].getNode();
 			Node n2 = pe[1].getNode();
-			if(n1 == null || n2 == null || n1.getId() == n2.getId()){
+			if(n1 == null || n2 == null || n1.getIntegerId() == n2.getIntegerId()){
 				if(n1 == n2){
 					if(n1 == null){
 						ci.setReason(Interaction.NOANCHOR);
@@ -97,8 +97,8 @@ public class EdgeExtraction {
 		private Node _n2;
 		
 		public TwoIntKey(Node n1, Node n2){
-			_i1 = n1.getId();
-			_i2 = n2.getId();
+			_i1 = n1.getIntegerId();
+			_i2 = n2.getIntegerId();
 			_n1 = n1;
 			_n2 = n2;
 			

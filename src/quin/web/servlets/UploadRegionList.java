@@ -47,6 +47,9 @@ public class UploadRegionList extends AbstractUploadServlet {
 				ps.addBatch();
 			} catch (NumberFormatException e) {
 			}
+			catch (ArrayIndexOutOfBoundsException e2){
+				
+			}
 		}
 		ps.executeBatch();
 		ps.close();

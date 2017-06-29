@@ -737,7 +737,17 @@
 						</div>
 						<div id="tabs-4">
 							<div>
-								<b>Background Type:</b> <input type="radio" name="testtype" value="t" id="ttest" checked="checked"><label for="ttest">Theoretical</label> <input type="radio" name="testtype" value="p" id="ptest"><label for="ptest">Permutation</label>
+								<b>Background Type:</b> 
+								<input type="radio" name="testtype" value="t" id="ttest" checked="checked"><label for="ttest">Theoretical</label>
+								 <input type="radio" name="testtype" value="it" id="ittest"><label for="ittest">Intrachromosome Theoretical</label>
+								 <input type="radio" name="testtype" value="p" id="ptest"><label for="ptest">Permutation</label>
+							</div>
+							<div id="ittestdesc">
+								<b>Distance Cutoff:</b> <input type="text" name="itthresh" id="itthresh" value="1000000">
+								<br />
+								Instead of assuming every node can be connected by an edge, the intrachromosome theoretical model computes the total number of possible edges
+								within the chromosome while also using a distance criteria for any hard limits put in place (i.e., 1MB) such that nodes with a distance larger
+								than this cut off will not contribute to adding an edge to the total possible edges.
 							</div>
 							<div id="permutetest">
 								<b>Number of Permutations (1-100000):</b> <input type="text" name="numpermutations" id="numpermutations" value="1000">

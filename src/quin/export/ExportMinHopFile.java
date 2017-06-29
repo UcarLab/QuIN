@@ -59,7 +59,7 @@ public class ExportMinHopFile {
 
 			for(Iterator<Node> it = nodes.values().iterator(); it.hasNext();){
 				Node n = it.next();
-				int id = n.getId();
+				int id = n.getIntegerId();
 				String chr = n.getChr();
 				int start = n.getStart();
 				int end = n.getEnd();

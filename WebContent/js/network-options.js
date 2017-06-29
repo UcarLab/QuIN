@@ -177,8 +177,8 @@ $(function(){
 				snps: ccidata.snps,
 				minsize: ccidata.minsize,
 				maxsize: ccidata.maxsize,
-				testtype: $("#ptest").prop("checked") ? "p" : "t",
-				permutations: $("#numpermutations").val()
+				testtype: $("#ptest").prop("checked") ? "p" : $("#ittest").prop("checked") ? "it" : "t",
+				permutations: $("#ptest").prop("checked") ? $("#numpermutations").val() : $("#itthresh").val(),
 			},
 			dataType : "json",
 			cache: false,
@@ -204,6 +204,21 @@ $(function(){
 						$("#sph").append('<br/><br/><b>Two-Tailed P-Values (using the null distribution derived from permutations):</b><br/>');
 						$("#sph").append(getTable(data.labels, data.permutationpval, function(a){ return parseFloat(a).toExponential(4);}));
 					}
+					
+					/*$("#sph").append('<br/><br/><b>Number of annotations (row) interacting with another annotation (column):</b><br/>');
+					var lwithvals = [];
+					for(var i = 0; i < data.labels.length; i++){
+						lwithvals[i] = data.labels[i]+"("+data.annotationtotals[i]+")";
+					}
+					$("#sph").append(getTable(lwithvals, data.annotationinteractioncount));
+					
+					$("#sph").append('<br/><br/><b>Number of annotations interacting with another annotation P-Value:</b><br/>');
+					var lwithvals = [];
+					for(var i = 0; i < data.labels.length; i++){
+						lwithvals[i] = data.labels[i]+"("+data.annotationtotals[i]+")";
+					}
+					$("#sph").append(getTable(lwithvals, data.annotationinteractionexpected, function(a){ return parseFloat(a).toFixed(4);}));
+					*/
 				}
 				else{
 					$("#sph").append("An error occurred while performing this analysis.");
@@ -213,14 +228,20 @@ $(function(){
 			});
 	});
 	
+	$("#ittestdesc").hide();
 	$("#permutetest").hide();
 	$("#ttest").click(function(){
+		$("#ittestdesc").hide();
 		$("#permutetest").hide();
 	});
 	$("#ptest").click(function(){
+		$("#ittestdesc").hide();
 		$("#permutetest").show();
 	});
-
+	$("#ittest").click(function(){
+		$("#ittestdesc").show();
+		$("#permutetest").hide();
+	});
 	
 	$("#gotoccb").button();
 	$("#gotoccb").click(function(){
@@ -480,16 +501,16 @@ function GOEnrichment(){
 				type : "POST"
 			}).success(function(data){
 				$("#goenrichment").empty();
-				var html = '<div class="enrichmenttable">';
-				html += '<div class="enrichmentrow">';
-					html += '<div class="enrichmentcol ui-state-active networkmenu-header">&nbsp;</div>';
-					html += '<div class="enrichmentcol ui-state-active networkmenu-header">GO ID</div>';
-					html += '<div class="enrichmentcol ui-state-active networkmenu-header">Description</div>';
-					html += '<div class="enrichmentcol ui-state-active networkmenu-header">Genes In GO Term</div>';
-					html += '<div class="enrichmentcol ui-state-active networkmenu-header">Genes In Component</div>';
-					html += '<div class="enrichmentcol ui-state-active networkmenu-header">Expected</div>';
-					html += '<div class="enrichmentcol ui-state-active networkmenu-header">Fisher</div>';
-				html += '</div>';
+				var html = '<table>';
+				html += '<tr>';
+					html += '<th>&nbsp;</th>';
+					html += '<th>GO ID</th>';
+					html += '<th>Description</th>';
+					html += '<th>Genes In GO Term</th>';
+					html += '<th>Genes In Component</th>';
+					html += '<th>Expected</th>';
+					html += '<th>Fisher</th>';
+				html += '</tr>';
 				var l = data.goids.length;
 				for(var i = 0; i < l; i++){
 					var id = data.goids[i];
@@ -500,18 +521,18 @@ function GOEnrichment(){
 					var pvalue = data.fisher[i];
 					go2gene = data.go2gene;
 					if(id){
-						html += '<div class="enrichmentrow">';
-						html += '<div class="enrichmentcol"><a href="javascript:groupNodes(\''+id+'\',\''+i+'\');"">View</a>&nbsp;</div>';
-						html += '<div class="enrichmentcol"><a href="http://amigo.geneontology.org/amigo/term/'+id+'" target="_blank">'+id+'</a></div>';
-						html += '<div class="enrichmentcol">'+label+'</div>';
-						html += '<div class="enrichmentcol">'+numref+'</div>';
-						html += '<div class="enrichmentcol">'+numlist+'</div>';
-						html += '<div class="enrichmentcol">'+expected+'</div>';
-						html += '<div class="enrichmentcol">'+pvalue+'</div>';
-						html += '</div>';
+						html += '<tr>';
+						html += '<td><a href="javascript:groupNodes(\''+id+'\',\''+i+'\');"">View</a>&nbsp;</td>';
+						html += '<td><a href="http://amigo.geneontology.org/amigo/term/'+id+'" target="_blank">'+id+'</a></td>';
+						html += '<td>'+label+'</td>';
+						html += '<td>'+numref+'</td>';
+						html += '<td>'+numlist+'</td>';
+						html += '<td>'+expected+'</td>';
+						html += '<td>'+pvalue+'</td>';
+						html += '</tr>';
 					}
 				}
-				html += '</div>';
+				html += '</table>';
 				$("#goenrichment").append(html);
 			}).error(function(){
 				$("#goenrichment").empty().append("Server Error.");

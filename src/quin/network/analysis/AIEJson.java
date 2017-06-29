@@ -8,10 +8,13 @@ public class AIEJson {
 	private double[][] expectedmatrix;
 	private double[][] texpectedmatrix;
 	private double[][] permutationpval;
+	private int[][] annotationinteractioncount;
+	private double[][] annotationinteractionexpected;
+	private int[] annotationtotals;
 	private int edgecount;
 	private String[] labels;
 	
-	public AIEJson(String hm, String[][] bm, int[][] cm, double[][] em, double[][] tem, double[][] ppv, int ec, String[] l){
+	public AIEJson(String hm, String[][] bm, int[][] cm, double[][] em, double[][] tem, double[][] ppv, int[][] aic, double[][] aie, int[] atotals, int ec, String[] l){
 		heatmap = hm;
 		binomialmatrix = bm;
 		countmatrix = cm;
@@ -20,6 +23,10 @@ public class AIEJson {
 		permutationpval = ppv;
 		edgecount = ec;
 		labels = l;
+		
+		annotationinteractioncount = aic;
+		annotationinteractionexpected = aie;
+		annotationtotals = atotals;
 	}
 	
 	public String getHeatmap(){
@@ -44,6 +51,18 @@ public class AIEJson {
 	
 	public double[][] getPermutationPVal(){
 		return permutationpval;
+	}
+	
+	public int[][] getAnnotationInteractionCount(){
+		return annotationinteractioncount;
+	}
+	
+	public double[][] getAnnotationInteractionExpected(){
+		return annotationinteractionexpected;
+	}
+	
+	public int[] getAnnotationTotals(){
+		return annotationtotals;
 	}
 	
 	public int getEdgeCount(){

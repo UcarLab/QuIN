@@ -10,13 +10,13 @@ public class ConnectedComponentExtraction {
 		
 		int maxid = 0;
 		for(int i = 0; i < nodes.length; i++){
-			maxid = Math.max(nodes[i].getId(), maxid);
+			maxid = Math.max(nodes[i].getIntegerId(), maxid);
 		}
 		boolean[] nvisited = new boolean[maxid+1];
 		boolean[] evisited = new boolean[icount];
 
 		for(int i = 0; i < nodes.length; i++){
-			int nid = nodes[i].getId();
+			int nid = nodes[i].getIntegerId();
 			LinkedList<Node> todo = new LinkedList<Node>();
 			LinkedList<Node> nl = new LinkedList<Node>();
 			LinkedList<Edge> el = new LinkedList<Edge>();
@@ -35,7 +35,7 @@ public class ConnectedComponentExtraction {
 							el.add(edges[j]);
 							evisited[eid] = true;
 							Node an = edges[j].getAdjacentNode(cn);
-							int anid = an.getId();
+							int anid = an.getIntegerId();
 							if(!nvisited[anid]){
 								nvisited[anid] = true;
 								todo.add(an);

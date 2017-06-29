@@ -648,7 +648,7 @@ $(function(){
 		}
 		
 		
-		var displayfunction = function(a){ return parseFloat(a).toExponential(4);};
+		var displayfunction = function(a){ return a;};
 		
 		ccidata.measure = 1;
 		

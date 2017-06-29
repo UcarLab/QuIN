@@ -117,7 +117,7 @@ public class OldDataRemover implements Runnable{
 	
 	
 	private void setOldUsers(Connection conn) throws SQLException{
-		String sql = "CREATE TEMPORARY TABLE TMP_oldusers AS (SELECT uid FROM usersessions.Sessions WHERE LASTUSED < DATE_SUB(NOW(), INTERVAL 30 DAY))";
+		String sql = "CREATE TEMPORARY TABLE TMP_oldusers AS (SELECT uid FROM usersessions.Sessions WHERE LASTUSED < DATE_SUB(NOW(), INTERVAL 60 DAY))";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.execute();
 		ps.close();

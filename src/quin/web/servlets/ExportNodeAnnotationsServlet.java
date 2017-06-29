@@ -111,7 +111,7 @@ public class ExportNodeAnnotationsServlet extends HttpServlet{
 		
 		ExportNodeAnnotations ena = new ExportNodeAnnotations();
 		try {
-			ena.writeFile(conn, fid,  sids, f1.getAbsolutePath());
+			ena.writeFile(conn, fid,  sids, f1.getAbsolutePath(), true, true);
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}

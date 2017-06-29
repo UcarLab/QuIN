@@ -12,15 +12,29 @@ public class SQLConnectionFactory {
 
 	// TODO make data source xml file
 	private static DataSource _ds;
-	
 	public static Connection getConnection() {
 		try {
 			DataSource ds = getDataSource();
-			return ds.getConnection();
+			Connection conn = ds.getConnection();
+			if(conn.isClosed()){
+				throw new SQLException();
+			}
+			return conn;
 		} catch (NamingException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
 			e.printStackTrace();
+			System.out.println("Resetting.");
+			_ds = null;
+			try {
+				DataSource ds = getDataSource();
+				return ds.getConnection();
+			} catch (NamingException e1) {
+				e1.printStackTrace();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			return null;
 		}
 		return null;
 	}

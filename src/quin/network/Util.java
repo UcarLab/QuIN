@@ -117,7 +117,7 @@ public class Util {
 							for(int j = si+1; j < i; j++){
 								end = Math.max(sl[j].getEnd(), end);
 							}
-							rv.add(new Location(sl[si].getId(), sl[si].getChr(), sl[si].getStart(), end));
+							rv.add(new Location(sl[si].getIntegerId(), sl[si].getChr(), sl[si].getStart(), end));
 							break;
 						}
 						else{

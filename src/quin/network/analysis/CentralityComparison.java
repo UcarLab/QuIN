@@ -147,8 +147,26 @@ axis(side=2)
 		String[][] rv = new String[l][l];
 		for(int i = 0; i < l; i++){
 			for(int j = 0; j < l; j++){
-				REXP rexp = rconn.parseAndEval("wilcox.test(d_"+i+"$measure, d_"+j+"$measure)$p.value;");
-				rv[i][j] = rexp.asString();
+				REXP rexp1 = rconn.parseAndEval("wilcox.test(d_"+i+"$measure, d_"+j+"$measure, alternative=\"less\")$p.value;");
+				REXP rexp2 = rconn.parseAndEval("wilcox.test(d_"+i+"$measure, d_"+j+"$measure, alternative=\"greater\")$p.value;");
+				double cutoff = Math.pow(10,-300);
+				if(rexp1.asDouble() < rexp2.asDouble()){
+					if(rexp1.asDouble() < cutoff){
+						rv[i][j] = "- < "+cutoff;
+					}
+					else{
+						rv[i][j] = "-"+rexp1.asString();
+					}
+					
+				}
+				else{
+					if(rexp2.asDouble() < cutoff){
+						rv[i][j] = "< "+cutoff;
+					}
+					else{
+						rv[i][j] = rexp2.asString();
+					}
+				}
 			}
 		}
 		
@@ -196,13 +214,16 @@ axis(side=2)
 	
 	private String getMeasure(int measure){
 		if(measure == 1){
-			return "CAST(n.degree AS decimal(64,10))/(cc.nodecount-1)";
+			//return "CAST(n.degree AS decimal(64,10))/(cc.nodecount-1)";
+			return "n.degree";
 		}
 		else if (measure == 2){
-			return "n.closeness*(cc.nodecount-1)";
+			//return "n.closeness*(cc.nodecount-1)";
+			return "n.closeness";
 		}
 		else if (measure == 3){
-			return "n.harmonic/(cc.nodecount-1)";
+			//return "n.harmonic/(cc.nodecount-1)";
+			return "n.harmonic";
 		}
 		else if (measure == 4){
 			return "(CASE WHEN cc.nodecount < 3 THEN 0 ELSE (n.betweenness/((cc.nodecount-1)*(cc.nodecount-2))) END)";

@@ -14,7 +14,7 @@ public class Location {
 		_end = end;
 	}
 	
-	public int getId(){
+	public int getIntegerId(){
 		return _id;
 	}
 	
@@ -36,5 +36,9 @@ public class Location {
 	
 	public int getEnd(){
 		return _end;
+	}
+	
+	public String toString(){
+		return _chr+":"+_start+"-"+_end;
 	}
 }

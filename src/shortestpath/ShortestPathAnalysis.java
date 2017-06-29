@@ -9,10 +9,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import quin.export.Util;
 import quin.network.Anchor;
+import quin.network.ConnectedComponent;
+import quin.network.ConnectedComponentExtraction;
 import quin.network.Edge;
 import quin.network.Interaction;
 import quin.network.Node;
@@ -27,6 +31,74 @@ public class ShortestPathAnalysis {
 		_nodes = setNetwork(conn, fid);
 	}
 	
+	public double getAVGPET(int nid){
+		Node n = _nodes.get(nid);
+		Edge[] edges = n.getEdges();
+		int petsum = 0;
+		for(int i = 0; i < edges.length; i++){
+			petsum += edges[i].getPETCount();
+		}
+		return (double)petsum/edges.length;
+	}
+	
+	//log2 Target Node Size Over Average Surrounding Node Size
+	public double getRelativeNodeSize(int nid){
+		Node n = _nodes.get(nid);
+		Edge[] edges = n.getEdges();
+		int runningsum = 0;
+		for(int i = 0; i < edges.length; i++){
+			Node an = edges[i].getAdjacentNode(n);
+			runningsum += an.getEnd()- an.getStart();
+		}
+		
+		return Math.log((n.getEnd()-n.getStart())/((double)runningsum/edges.length))/Math.log(2);
+	}
+	
+	public Integer[] getConnectedNodes(int nid){
+		Node n = _nodes.get(nid);
+		Edge[] edges = n.getEdges();
+		Set<Integer> rv = new TreeSet<Integer>();
+		for(int i = 0; i < edges.length; i++){
+			Node an = edges[i].getAdjacentNode(n);
+			rv.add(an.getIntegerId());
+		}
+		
+		return rv.toArray(new Integer[0]);
+	}
+	
+	public ComponentData getComponents(){
+		ConnectedComponentExtraction cc = new ConnectedComponentExtraction();
+		Node[] nodes = _nodes.values().toArray(new Node[0]);
+		int maxedgeid = 0;
+		for(int i = 0; i < nodes.length; i++){
+			 Edge[] edges = nodes[i].getEdges();
+			 for(int j = 0; j < edges.length; j++){
+				 maxedgeid = Math.max(maxedgeid, edges[j].getId());
+			 }
+		}
+		TreeMap<Integer, Node[]> components = new TreeMap<Integer,Node[]>();
+		TreeMap<Integer, Integer> nodeindex = new TreeMap<Integer,Integer>();
+		ConnectedComponent[] ccs = cc.getCCs(nodes, maxedgeid+1, 0, 0);
+		
+		for(int i = 0; i < ccs.length; i++){
+			Node[] cnodes = ccs[i].getNodes();
+			for(int j = 0; j < cnodes.length; j++){
+				nodeindex.put(cnodes[j].getIntegerId(), i);
+			}
+			components.put(i, cnodes);
+		}
+		
+		ComponentData rv = new ComponentData();
+		rv.components = components;
+		rv.nodetoccid = nodeindex;
+		
+		return rv;
+	}
+	
+	public class ComponentData {
+		public TreeMap<Integer, Node[]> components;
+		public TreeMap<Integer, Integer> nodetoccid;
+	}
 	
 	public TreeMap<Integer, Node> getNodes(){
 		return _nodes;
@@ -133,7 +205,7 @@ public class ShortestPathAnalysis {
 		
 		todo.add(n);
 		hopcount.add(0);
-		path.add(""+n.getId());
+		path.add(""+n.getIntegerId());
 		int npetcount = 0;
 		petmin.add(npetcount);
 		petmax.add(npetcount);
@@ -144,7 +216,7 @@ public class ShortestPathAnalysis {
 		intermax.add(nintercount);
 		intersum.add(nintercount);
 
-		visited[n.getId()] = true;
+		visited[n.getIntegerId()] = true;
 		
 		TreeMap<Integer, LinkedList<double[]>> mhmap = new TreeMap<Integer, LinkedList<double[]>>();
 		TreeMap<Integer, LinkedList<String>> mhpath = new TreeMap<Integer, LinkedList<String>>();
@@ -159,7 +231,7 @@ public class ShortestPathAnalysis {
 			int cintersum = intersum.removeFirst();
 			int cintermin = intermin.removeFirst();
 			int cintermax = intermax.removeFirst();
-			int id = cn.getId();
+			int id = cn.getIntegerId();
 			
 			ARegion[] g = null;
 			if(id < gm.length){
@@ -201,14 +273,14 @@ public class ShortestPathAnalysis {
 			Edge[] edges = cn.getEdges();
 			for(int i = 0; i < edges.length; i++){
 				Node adjn = edges[i].getAdjacentNode(cn);
-				int adjid = adjn.getId();
+				int adjid = adjn.getIntegerId();
 				int adjpetcount = edges[i].getPETCount();
 				int adjintercount = edges[i].getInteractionCount();
 
 				if(!visited[adjid]){
 					todo.add(adjn);
 					hopcount.add(chc+1);
-					path.add(cp+"|"+adjn.getId());
+					path.add(cp+"|"+adjn.getIntegerId());
 					petsum.add(cpetsum+adjpetcount);
 					if(chc > 0){
 						petmin.add(Math.min(cpetmin, adjpetcount));
@@ -451,7 +523,7 @@ public class ShortestPathAnalysis {
 				for(int j = 0; j < gl.length; j++){
 					ARegion cg = gl[j];
 					if(cg.getStart() <= cn.getEnd() && cn.getStart() <= cg.getEnd()){
-						int cid = cn.getId();
+						int cid = cn.getIntegerId();
 						if(!map.containsKey(cid)){
 							map.put(cid, new LinkedList<NARegion>());
 						}
