@@ -52,9 +52,15 @@ public class NetworkBuilder {
 	}
 	
 	//Assumes locations are not overlapping
-	public ChIAPETNetwork buildNetwork(Location[] locations, int minpet, int maxdist, int minmaxpet, int mininterpet, int minsize, int mintwopet, int ext) throws Exception{
+	public ChIAPETNetwork buildNetwork(Location[] locations, int minpet, int maxdist, int minmaxpet, int mininterpet, int minsize, int mintwopet, int ext, boolean merge) throws Exception{
 		Util u = new Util();
-		locations = u.getNonOverlappingLocations(locations);
+		if(merge){
+			locations = u.getNonOverlappingLocations(locations,ext);
+			System.out.println("merging");
+		}
+		else{
+			locations = u.getNonOverlappingLocations(locations,0);
+		}
 		NodeExtraction ne = new NodeExtraction();
 		Node[] nodes = ne.getNodes(_interactions.pairedends, locations, ext);
 		

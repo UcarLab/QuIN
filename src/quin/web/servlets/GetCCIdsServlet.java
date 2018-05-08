@@ -35,28 +35,39 @@ public class GetCCIdsServlet extends HttpServlet{
 			throws ServletException, IOException {		
 
 		Connection conn = SQLConnectionFactory.getConnection();
-		ServletUtil util = new ServletUtil();
-		
-		UserSession us = new UserSession();
-		long uid = -1;
-		try {
-			uid = us.getUserId(req, resp, conn);
-		} catch (Exception e) {
-			util.setResponse(resp, "[\"Error: Error loading session data.\"]");
+		try{
+			ServletUtil util = new ServletUtil();
+			
+			UserSession us = new UserSession();
+			long uid = -1;
 			try {
-				conn.close();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
+				uid = us.getUserId(req, resp, conn);
+			} catch (Exception e) {
+				util.setResponse(resp, "[\"Error: Error loading session data.\"]");
+				try {
+					conn.close();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				return;
 			}
-			return;
-		}
-		
-		String network = req.getParameter("network");
-		long fid = -1;
-		try {
-			fid = Long.parseLong(network);
-			Util u = new Util();
-			if(!u.dataexists(conn, "usersessions.Networks", uid, fid)){
+			
+			String network = req.getParameter("network");
+			long fid = -1;
+			try {
+				fid = Long.parseLong(network);
+				Util u = new Util();
+				if(!u.dataexists(conn, "usersessions.Networks", uid, fid)){
+					util.setResponse(resp, "[\"Error: Error loading network.\"]");
+					try {
+						conn.close();
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
+					return;
+				}
+			}
+			catch(Exception e){
 				util.setResponse(resp, "[\"Error: Error loading network.\"]");
 				try {
 					conn.close();
@@ -65,69 +76,62 @@ public class GetCCIdsServlet extends HttpServlet{
 				}
 				return;
 			}
-		}
-		catch(Exception e){
-			util.setResponse(resp, "[\"Error: Error loading network.\"]");
+			
+			String[] genelists = req.getParameterValues("genes[]");
+			String[] diseaselists = req.getParameterValues("diseases[]");
+			String[] regionlists = req.getParameterValues("regions[]");
+			String[] snplists = req.getParameterValues("snps[]");
+		
+			String fminsize = req.getParameter("minsize");
+			String fmaxsize = req.getParameter("maxsize");
+	
+			int minsize = 1;
+			int maxsize = Integer.MAX_VALUE;
 			try {
-				conn.close();
+				minsize = Integer.parseInt(fminsize);
+				maxsize = Integer.parseInt(fmaxsize);
+			}
+			catch(NumberFormatException e){ }
+	
+			//int ts = Integer.parseInt(traitsrc);
+			int ts = 2; //Just GWAS for now.
+			
+			//boolean promoter = req.getParameter("promoter").equals("true");
+			
+			Integer[] ccids = new Integer[0];
+			
+			SIIndexUtil siu = new SIIndexUtil();
+			Integer[] sids = new Integer[0];
+			sids = siu.getIndices(conn, uid, fid, ts, genelists, diseaselists, regionlists, snplists);
+	
+			CCIdQuery ccidq = new CCIdQuery();
+			int sortby = 0;
+			try{
+				sortby = Integer.parseInt(req.getParameter("sortby"));
+			}
+			catch (NumberFormatException e){
+				
+			}
+			try {
+				ccids = ccidq.getCCIds(conn, "chiapet", fid, sids, sortby, maxsize, minsize, !req.getParameter("annotatedonly").equalsIgnoreCase("true"));
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
-			return;
-		}
-		
-		String[] genelists = req.getParameterValues("genes[]");
-		String[] diseaselists = req.getParameterValues("diseases[]");
-		String[] regionlists = req.getParameterValues("regions[]");
-		String[] snplists = req.getParameterValues("snps[]");
-	
-		String fminsize = req.getParameter("minsize");
-		String fmaxsize = req.getParameter("maxsize");
-
-		int minsize = 1;
-		int maxsize = Integer.MAX_VALUE;
-		try {
-			minsize = Integer.parseInt(fminsize);
-			maxsize = Integer.parseInt(fmaxsize);
-		}
-		catch(NumberFormatException e){ }
-
-		//int ts = Integer.parseInt(traitsrc);
-		int ts = 2; //Just GWAS for now.
-		
-		//boolean promoter = req.getParameter("promoter").equals("true");
-		
-		Integer[] ccids = new Integer[0];
-		
-		SIIndexUtil siu = new SIIndexUtil();
-		Integer[] sids = new Integer[0];
-		sids = siu.getIndices(conn, uid, fid, ts, genelists, diseaselists, regionlists, snplists);
-
-		CCIdQuery ccidq = new CCIdQuery();
-		int sortby = 0;
-		try{
-			sortby = Integer.parseInt(req.getParameter("sortby"));
-		}
-		catch (NumberFormatException e){
 			
+			
+			Gson gson = new Gson();
+			resp.setContentType("application/json");
+			PrintWriter out = resp.getWriter();
+			out.print(gson.toJson(ccids));
+			out.flush();
+		
 		}
-		try {
-			ccids = ccidq.getCCIds(conn, "chiapet", fid, sids, sortby, maxsize, minsize, !req.getParameter("annotatedonly").equalsIgnoreCase("true"));
-		} catch (SQLException e1) {
-			e1.printStackTrace();
-		}
-		
-		
-		Gson gson = new Gson();
-		resp.setContentType("application/json");
-		PrintWriter out = resp.getWriter();
-		out.print(gson.toJson(ccids));
-		out.flush();
-		
-		try {
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
+		finally{
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	

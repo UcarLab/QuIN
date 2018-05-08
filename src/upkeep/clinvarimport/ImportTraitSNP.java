@@ -27,13 +27,21 @@ public class ImportTraitSNP {
 		xmlReader.parse(convertToFileURL(file));
 		
 		Connection conn = SQLConnectionFactory.getConnection();
+		try{
 		TableCreator tc = new TableCreator();
 		
 		tc.createTables(conn, tablename, true);
 	
 		snpparser.importTraits(conn, tablename);
 		snpparser.importMapping(conn, tablename);
-		
+		}
+		finally{
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private String convertToFileURL(String filename) {

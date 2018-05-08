@@ -35,28 +35,39 @@ public class SearchServlet extends HttpServlet{
 			throws ServletException, IOException {		
 
 		Connection conn = SQLConnectionFactory.getConnection();
-		ServletUtil util = new ServletUtil();
-		
-		UserSession us = new UserSession();
-		long uid = -1;
-		try {
-			uid = us.getUserId(req, resp, conn);
-		} catch (Exception e) {
-			util.setResponse(resp, "[\"Error: Error loading session data.\"]");
+		try{
+			ServletUtil util = new ServletUtil();
+			
+			UserSession us = new UserSession();
+			long uid = -1;
 			try {
-				conn.close();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
+				uid = us.getUserId(req, resp, conn);
+			} catch (Exception e) {
+				util.setResponse(resp, "[\"Error: Error loading session data.\"]");
+				try {
+					conn.close();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				return;
 			}
-			return;
-		}
-		
-		String network = req.getParameter("network");
-		long fid = -1;
-		try {
-			fid = Long.parseLong(network);
-			Util u = new Util();
-			if(!u.dataexists(conn, "usersessions.Networks", uid, fid)){
+			
+			String network = req.getParameter("network");
+			long fid = -1;
+			try {
+				fid = Long.parseLong(network);
+				Util u = new Util();
+				if(!u.dataexists(conn, "usersessions.Networks", uid, fid)){
+					util.setResponse(resp, "[\"Error: Error loading network.\"]");
+					try {
+						conn.close();
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
+					return;
+				}
+			}
+			catch(Exception e){
 				util.setResponse(resp, "[\"Error: Error loading network.\"]");
 				try {
 					conn.close();
@@ -65,42 +76,35 @@ public class SearchServlet extends HttpServlet{
 				}
 				return;
 			}
-		}
-		catch(Exception e){
-			util.setResponse(resp, "[\"Error: Error loading network.\"]");
+			
+			String searchstring = req.getParameter("search").trim().toLowerCase();
+	
+			
+			
+			Gson gson = new Gson();
+			resp.setContentType("application/json");
+			PrintWriter out = resp.getWriter();
 			try {
-				conn.close();
+				out.print(gson.toJson(getResults(conn, fid, searchstring)));
 			} catch (SQLException e1) {
 				e1.printStackTrace();
+				util.setResponse(resp, "[\"Error: SQL Error.\"]");
+				try {
+					conn.close();
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
+				return;
 			}
-			return;
+			out.flush();
+			
 		}
-		
-		String searchstring = req.getParameter("search").trim().toLowerCase();
-
-		
-		
-		Gson gson = new Gson();
-		resp.setContentType("application/json");
-		PrintWriter out = resp.getWriter();
-		try {
-			out.print(gson.toJson(getResults(conn, fid, searchstring)));
-		} catch (SQLException e1) {
-			e1.printStackTrace();
-			util.setResponse(resp, "[\"Error: SQL Error.\"]");
+		finally{
 			try {
 				conn.close();
-			} catch (SQLException e2) {
-				e2.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-			return;
-		}
-		out.flush();
-		
-		try {
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 	}
 	

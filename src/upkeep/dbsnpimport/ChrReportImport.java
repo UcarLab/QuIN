@@ -24,37 +24,43 @@ public class ChrReportImport {
 		}
 		
 		Connection conn = SQLConnectionFactory.getConnection();
-		
-		_chrs = new TreeSet<String>();
-		
-		PreparedStatement ps = conn.prepareStatement("USE dbSNP");
-		ps.execute();
-		ps.close();
-		
-		TableCreator tc = new TableCreator();
-		tc.createTable(conn, tablename, override);
-		
-		ps = conn.prepareStatement("LOCK TABLES "+tablename+" WRITE");
-		ps.execute();
-		ps.close();
-		
-
-		
-		File[] files = f.listFiles();
-		for(int i = 0; i < files.length; i++){
-			if(files[i].isFile() && files[i].getPath().endsWith("gz")){
-				String filename = files[i].getName();			
-				System.out.println("Importing "+filename+".");
-				importFile(conn, tablename, files[i]);
-				System.out.println("Finished importing "+filename+".");
+		try{
+			_chrs = new TreeSet<String>();
+			
+			PreparedStatement ps = conn.prepareStatement("USE dbSNP");
+			ps.execute();
+			ps.close();
+			
+			TableCreator tc = new TableCreator();
+			tc.createTable(conn, tablename, override);
+			
+			ps = conn.prepareStatement("LOCK TABLES "+tablename+" WRITE");
+			ps.execute();
+			ps.close();
+			
+	
+			
+			File[] files = f.listFiles();
+			for(int i = 0; i < files.length; i++){
+				if(files[i].isFile() && files[i].getPath().endsWith("gz")){
+					String filename = files[i].getName();			
+					System.out.println("Importing "+filename+".");
+					importFile(conn, tablename, files[i]);
+					System.out.println("Finished importing "+filename+".");
+				}
+			}		
+			
+			ps = conn.prepareStatement("UNLOCK TABLES");
+			ps.execute();
+			ps.close();
+		}
+		finally{
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-		}		
-		
-		ps = conn.prepareStatement("UNLOCK TABLES");
-		ps.execute();
-		ps.close();
-		
-		conn.close();
+		}
 	}
 
 	private void importFile(Connection conn, String tablename, File file) throws SQLException, IOException{

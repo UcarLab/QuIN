@@ -73,13 +73,21 @@ public class ImportGWAS {
 		
 		Connection conn = SQLConnectionFactory.getConnection();
 		
-		TableCreator tc = new TableCreator();
-		tc.createTables(conn, tablename, true);
+		try{
+			TableCreator tc = new TableCreator();
+			tc.createTables(conn, tablename, true);
+			
+			importTraits(conn, tablename, traits);
+			importMapping(conn, tablename, snpmap);
 		
-		importTraits(conn, tablename, traits);
-		importMapping(conn, tablename, snpmap);
-		
-		conn.close();
+		}
+		finally{
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private void importTraits(Connection conn, String tablename, TreeMap<String, Integer> traits) throws SQLException{

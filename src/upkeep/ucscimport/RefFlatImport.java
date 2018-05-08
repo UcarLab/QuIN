@@ -22,36 +22,43 @@ public class RefFlatImport {
 		BufferedReader br = new BufferedReader(isr);
 		
 		Connection conn = SQLConnectionFactory.getConnection();
-		
-		//PreparedStatement dps = conn.prepareStatement("DELETE FROM table");
-		
-		PreparedStatement ps = conn.prepareStatement("INSERT INTO "+table+" VALUES(?,?,?,?,?,?,?,?,?,?,?)");
-		
-		while(br.ready()){
-			String line = br.readLine();
-			String[] cols = line.split("\t");
+		try{
+			//PreparedStatement dps = conn.prepareStatement("DELETE FROM table");
 			
-			ps.setString(1, cols[0]);
-			ps.setString(2, cols[1]);
-			ps.setString(3, cols[2]);
-			ps.setString(4, cols[3]);
-			ps.setInt(5, Integer.parseInt(cols[4]));
-			ps.setInt(6, Integer.parseInt(cols[5]));
-			ps.setInt(7, Integer.parseInt(cols[6]));
-			ps.setInt(8, Integer.parseInt(cols[7]));
-			ps.setInt(9, Integer.parseInt(cols[8]));
-						
-			ps.setBlob(10, getBlob(conn, cols[9]));
-			ps.setBlob(11, getBlob(conn, cols[10]));
+			PreparedStatement ps = conn.prepareStatement("INSERT INTO "+table+" VALUES(?,?,?,?,?,?,?,?,?,?,?)");
 			
-			ps.execute();
+			while(br.ready()){
+				String line = br.readLine();
+				String[] cols = line.split("\t");
+				
+				ps.setString(1, cols[0]);
+				ps.setString(2, cols[1]);
+				ps.setString(3, cols[2]);
+				ps.setString(4, cols[3]);
+				ps.setInt(5, Integer.parseInt(cols[4]));
+				ps.setInt(6, Integer.parseInt(cols[5]));
+				ps.setInt(7, Integer.parseInt(cols[6]));
+				ps.setInt(8, Integer.parseInt(cols[7]));
+				ps.setInt(9, Integer.parseInt(cols[8]));
+							
+				ps.setBlob(10, getBlob(conn, cols[9]));
+				ps.setBlob(11, getBlob(conn, cols[10]));
+				
+				ps.execute();
+			}
+			
+			br.close();
+			isr.close();
+			gzis.close();
+			fis.close();
 		}
-		
-		br.close();
-		isr.close();
-		gzis.close();
-		fis.close();
-		conn.close();
+		finally{
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private Blob getBlob(Connection conn, String value) throws IOException, SQLException{

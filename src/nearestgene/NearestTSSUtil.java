@@ -241,8 +241,8 @@ public class NearestTSSUtil {
 			}
 		}
 		
-		if(upstreamnearesttss.isEmpty()){
-			TSS midtss = slist[mid];
+		if(upstreamnearesttss.isEmpty() && slist.length > 0){
+			TSS midtss = slist[Math.min(mid, slist.length-1)];
 			int tss = midtss.tss;
 			
 			int ui, di;

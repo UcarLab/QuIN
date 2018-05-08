@@ -35,30 +35,39 @@ public class FirstVisitServlet extends HttpServlet{
 			throws ServletException, IOException {		
 
 		Connection conn = SQLConnectionFactory.getConnection();
-		ServletUtil util = new ServletUtil();
-		
-		Cookie[] cookies = req.getCookies();
-		Boolean fv = (cookies == null);
-		
-		UserSession us = new UserSession();
-
-		try {
-			us.getUserId(req, resp, conn);
-		} catch (Exception e) {
-			e.printStackTrace();
-			util.setResponse(resp, "[\"Error: Error loading session data.\"]");
+		try{
+			ServletUtil util = new ServletUtil();
+			
+			Cookie[] cookies = req.getCookies();
+			Boolean fv = (cookies == null);
+			
+			UserSession us = new UserSession();
+	
+			try {
+				us.getUserId(req, resp, conn);
+			} catch (Exception e) {
+				e.printStackTrace();
+				util.setResponse(resp, "[\"Error: Error loading session data.\"]");
+				try {
+					conn.close();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
+			
+			Gson gson = new Gson();
+			resp.setContentType("application/json");
+			PrintWriter out = resp.getWriter();
+			out.print(gson.toJson(fv));
+			out.flush();
+		}
+		finally{
 			try {
 				conn.close();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
 		}
-		
-		Gson gson = new Gson();
-		resp.setContentType("application/json");
-		PrintWriter out = resp.getWriter();
-		out.print(gson.toJson(fv));
-		out.flush();
 	}
 	
 }

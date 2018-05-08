@@ -55,25 +55,28 @@ public class GWASTraitAutoCompleteServlet extends HttpServlet{
 		if(term == null){
 			return new String[0];
 		}
-		
-		Connection conn = SQLConnectionFactory.getConnection();
-		String sql = "SELECT trait FROM gwas.gwas_traits WHERE trait LIKE ? LIMIT 0,20";
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setString(1, '%'+term+'%');
-		
-		ResultSet rs = ps.executeQuery();
 		LinkedList<String> l  = new LinkedList<String>();
-		
-		while(rs.next()){
-			l.add(rs.getString(1));
+		Connection conn = SQLConnectionFactory.getConnection();
+		try{
+			String sql = "SELECT trait FROM gwas.gwas_traits WHERE trait LIKE ? LIMIT 0,20";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, '%'+term+'%');
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while(rs.next()){
+				l.add(rs.getString(1));
+			}
+			
+			rs.close();
+			ps.close();
 		}
-		
-		rs.close();
-		ps.close();
-		try {
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
+		finally{
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		return l.toArray(new String[0]);

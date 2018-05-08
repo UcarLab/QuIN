@@ -33,27 +33,30 @@ public class GetGene2Go extends HttpServlet{
 		
 		GO2Gene go2g = new GO2Gene();
 		Connection conn = SQLConnectionFactory.getConnection();
-		
-		Gson gson = new Gson();
-		resp.setContentType("application/json");
-		PrintWriter out = resp.getWriter();
-		try {
-			out.print(gson.toJson(go2g.getGO2Gene(conn, 9606, goid, geneids)));
-		} catch (SQLException e) {
-			e.printStackTrace();
-			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		try{
+			Gson gson = new Gson();
+			resp.setContentType("application/json");
+			PrintWriter out = resp.getWriter();
+			try {
+				out.print(gson.toJson(go2g.getGO2Gene(conn, 9606, goid, geneids)));
+			} catch (SQLException e) {
+				e.printStackTrace();
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				try {
+					conn.close();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				return;
+			}
+			out.flush();
+		}
+		finally{
 			try {
 				conn.close();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-			return;
-		}
-		out.flush();
-		try {
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 	}
 	

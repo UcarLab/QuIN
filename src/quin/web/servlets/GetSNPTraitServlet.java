@@ -57,31 +57,34 @@ public class GetSNPTraitServlet extends HttpServlet{
 		}
 		
 		Connection conn = SQLConnectionFactory.getConnection();
-		
-		SNPTrait[] snptraits;
-		try {
-			snptraits = getSNPTraits(conn, chr, start, end);
-		} catch (SQLException e1) {
-			e1.printStackTrace();
-			util.setResponse(resp, "[\"Error: SQL Error.\"]");
+		try{
+			SNPTrait[] snptraits;
+			try {
+				snptraits = getSNPTraits(conn, chr, start, end);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+				util.setResponse(resp, "[\"Error: SQL Error.\"]");
+				try {
+					conn.close();
+				} catch (SQLException e2) {
+					e2.printStackTrace();
+				}
+				return;
+			}
+			
+			Gson gson = new Gson();
+			resp.setContentType("application/json");
+			PrintWriter out = resp.getWriter();
+			out.print(gson.toJson(snptraits, SNPTrait[].class));
+			out.flush();
+			
+		}
+		finally{
 			try {
 				conn.close();
-			} catch (SQLException e2) {
-				e2.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-			return;
-		}
-		
-		Gson gson = new Gson();
-		resp.setContentType("application/json");
-		PrintWriter out = resp.getWriter();
-		out.print(gson.toJson(snptraits, SNPTrait[].class));
-		out.flush();
-		
-		try {
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 	}
 	

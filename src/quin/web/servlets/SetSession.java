@@ -33,35 +33,44 @@ public class SetSession extends HttpServlet{
 			throws ServletException, IOException {		
 		Connection conn = SQLConnectionFactory.getConnection();
 		
-		String uid = req.getParameter("uid");
-		String phrase = req.getParameter("phrase");
-		
-		String rv = "error";
-		if(uid != null && phrase != null){
-			Long luid = Long.parseLong(uid);
-			UserSession us = new UserSession();
+		try{
+			String uid = req.getParameter("uid");
+			String phrase = req.getParameter("phrase");
+			
+			String rv = "error";
+			if(uid != null && phrase != null){
+				Long luid = Long.parseLong(uid);
+				UserSession us = new UserSession();
+				try {
+					if(us.sessionExists(conn, luid, phrase)){
+						final int EXP = 604800;
+						
+						Cookie uidc = new Cookie("uid", luid.toString());
+						uidc.setMaxAge(EXP);
+	
+						Cookie pc = new Cookie("phrase", phrase);
+						pc.setMaxAge(EXP);
+						resp.addCookie(uidc);
+						resp.addCookie(pc);
+						rv = "set";
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				};
+			}
+			
+			resp.setContentType("text/plain");
+			PrintWriter out = resp.getWriter();
+			out.print(rv);
+			out.flush();
+		}
+		finally{
 			try {
-				if(us.sessionExists(conn, luid, phrase)){
-					final int EXP = 604800;
-					
-					Cookie uidc = new Cookie("uid", luid.toString());
-					uidc.setMaxAge(EXP);
-
-					Cookie pc = new Cookie("phrase", phrase);
-					pc.setMaxAge(EXP);
-					resp.addCookie(uidc);
-					resp.addCookie(pc);
-					rv = "set";
-				}
+				conn.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
-			};
+			}
 		}
-		
-		resp.setContentType("text/plain");
-		PrintWriter out = resp.getWriter();
-		out.print(rv);
-		out.flush();
 	}
 	
 }

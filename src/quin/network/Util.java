@@ -95,7 +95,7 @@ public class Util {
 		return rv;
 	}
 	
-	public Location[] getNonOverlappingLocations(Location[] loc){
+	public Location[] getNonOverlappingLocations(Location[] loc, int ext){
 		TreeMap<String, Location[]> chrsorted = getChrStartSorted(loc);
 		LinkedList<Location> rv = new LinkedList<Location>();
 		
@@ -106,13 +106,13 @@ public class Util {
 			while(i < sl.length-1){
 				Location cl = sl[i];
 				Location nl = sl[i+1];
-				if(nl.getStart() <= cl.getEnd()){
+				if(nl.getStart()-ext <= cl.getEnd()+ext){
 					int si = i;
 					i++;
 					while(i < sl.length-1){
 						cl = sl[i];
 						nl = sl[i+1];
-						if(nl.getStart() > cl.getEnd()){
+						if(nl.getStart()-ext > cl.getEnd()+ext){
 							int end = sl[si].getEnd();
 							for(int j = si+1; j < i; j++){
 								end = Math.max(sl[j].getEnd(), end);

@@ -31,25 +31,33 @@ public class Gene2GO {
 		File f = File.createTempFile("rgene2go", "_"+taxid, tmpdir);
 		
 		Connection conn = SQLConnectionFactory.getConnection();
-		String sql = "SELECT gene_id, group_concat(goid SEPARATOR ', ') AS GOIDS FROM ncbi.gene2go WHERE tax_id=? GROUP BY gene_id";
-		
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, taxid);
-		
-		ResultSet rs = ps.executeQuery();
-		
-		BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-		while(rs.next()){
-			String geneid = rs.getString(1);
-			String goids = rs.getString(2);
-			bw.write(geneid+"\t"+goids+"\n");
+		try{
+			String sql = "SELECT gene_id, group_concat(goid SEPARATOR ', ') AS GOIDS FROM ncbi.gene2go WHERE tax_id=? GROUP BY gene_id";
+			
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, taxid);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+			while(rs.next()){
+				String geneid = rs.getString(1);
+				String goids = rs.getString(2);
+				bw.write(geneid+"\t"+goids+"\n");
+			}
+			bw.flush();
+			bw.close();
+			
+			rs.close();
+			ps.close();
 		}
-		bw.flush();
-		bw.close();
-		
-		rs.close();
-		ps.close();
-		conn.close();
+		finally{
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 		return f;
 	}
 	

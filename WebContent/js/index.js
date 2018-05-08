@@ -789,6 +789,7 @@ function buildNetwork(){
 	var ext = $("#b_ext").val();
 	var minpet = $("#b_minpet").val();
 	var maxdist = $("#b_maxdist").val();
+	var merge = $("#b_merge").prop("checked") ? "TRUE" : "FALSE";
 	var intermin = $("#b_interminb").prop("checked") ? 0 : $("#b_interminter").prop("checked") ? -1 : 1;
 	
 	var data = {
@@ -799,6 +800,7 @@ function buildNetwork(){
 		minpet: minpet,
 		maxdist: maxdist,
 		intermin: intermin,
+		merge: merge
 	};
 
 	$.ajax({

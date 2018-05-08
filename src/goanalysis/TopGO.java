@@ -122,22 +122,30 @@ public class TopGO {
 				+"((n.start <= g.txstart+"+upstream+" AND g.txstart-"+downstream+" <= n.end AND g.strand='+')"
 				+"|| (n.start <= g.txend+"+downstream+" AND g.txend-"+upstream+" <= n.end AND g.strand='-'))s";
 		Connection conn = SQLConnectionFactory.getConnection();
-		PreparedStatement ps = conn.prepareStatement(sql);
-		ps.setInt(1, taxid);
-		ResultSet rs = ps.executeQuery();
-		
 		TreeMap<Integer, LinkedList<String>> rv = new TreeMap<Integer, LinkedList<String>>();
-		while(rs.next()){
-			int ccid = rs.getInt(1);
-			if(!rv.containsKey(ccid)){
-				rv.put(ccid, new LinkedList<String>());
+		try{
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, taxid);
+			ResultSet rs = ps.executeQuery();
+			
+			while(rs.next()){
+				int ccid = rs.getInt(1);
+				if(!rv.containsKey(ccid)){
+					rv.put(ccid, new LinkedList<String>());
+				}
+				rv.get(ccid).add(rs.getString(2));
 			}
-			rv.get(ccid).add(rs.getString(2));
+			
+			rs.close();
+			ps.close();
 		}
-		
-		rs.close();
-		ps.close();
-		conn.close();
+		finally{
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 		return rv;
 	}
 	
